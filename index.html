@@ -27,7 +27,7 @@
       <div class="bezel">
         <div class="crt-wrap" id="crt-wrap" data-system="nes">
           <canvas id="screen" width="256" height="240"></canvas>
-          <div id="gb-player" hidden></div>
+          <div id="gb-player"></div>
           <div class="crt-glass"></div>
           <div class="crt-vignette"></div>
         </div>
@@ -84,9 +84,8 @@
       <ol>
         <li>Create a Google Cloud project and enable <strong>Google Drive API</strong> + <strong>Google Picker API</strong>.</li>
         <li>OAuth consent screen: External, add yourself as a test user.</li>
-        <li>Create an OAuth <strong>Web application</strong> client ID with those origins.</li>
-        <li>Create an API key. Restrict it to those referrers if you want.</li>
-        <li>Project number is on the Cloud Console home page — that is App ID.</li>
+        <li>Create an OAuth <strong>Web application</strong> client ID with those origins (required).</li>
+        <li>API key and project number (App ID) help the picker download binary ROMs and zips.</li>
       </ol>
       <label>OAuth client ID
         <input id="drive-client-id" type="text" autocomplete="off" placeholder="….apps.googleusercontent.com" />
@@ -104,6 +103,18 @@
     </form>
   </dialog>
 
+  <dialog id="zip-pick">
+    <div class="drive-form">
+      <h2>ROMs in this zip</h2>
+      <p>Pick the game to load. Nested zips are unpacked too.</p>
+      <ul id="zip-list" class="zip-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="zip-cancel" class="btn">Cancel</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/vendor/jszip.min.js"></script>
   <script src="js/demo-rom.js"></script>
   <script src="js/cpu.js"></script>
   <script src="js/ppu.js"></script>

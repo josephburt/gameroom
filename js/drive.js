@@ -4,10 +4,9 @@
 
   const SCOPE = "https://www.googleapis.com/auth/drive.file";
   const STORE = "grok-nes-drive";
-  let tokenClient = null;
   let accessToken = null;
   let pickerReady = false;
-  let gisReady = false;
+  let apisPromise = null;
 
   function defaults() {
     return g.GROK_DRIVE_DEFAULTS || {};
@@ -23,9 +22,9 @@
 
   function saveCfg(cfg) {
     localStorage.setItem(STORE, JSON.stringify({
-      clientId: cfg.clientId.trim(),
-      apiKey: cfg.apiKey.trim(),
-      appId: String(cfg.appId).trim()
+      clientId: (cfg.clientId || "").trim(),
+      apiKey: (cfg.apiKey || "").trim(),
+      appId: String(cfg.appId || "").trim()
     }));
   }
 
@@ -40,8 +39,7 @@
   }
 
   function isConfigured() {
-    const c = getCfg();
-    return !!(c.clientId && c.apiKey && c.appId);
+    return !!getCfg().clientId;
   }
 
   function loadScript(src) {
@@ -63,23 +61,54 @@
     });
   }
 
-  async function ensureApis() {
-    await loadScript("https://accounts.google.com/gsi/client");
-    await loadScript("https://apis.google.com/js/api.js");
-    gisReady = true;
-    await new Promise(function (resolve, reject) {
-      if (pickerReady) { resolve(); return; }
-      gapi.load("picker", function () { pickerReady = true; resolve(); });
+  function withTimeout(promise, ms, label) {
+    return new Promise(function (resolve, reject) {
+      const t = setTimeout(function () {
+        reject(new Error(label + " timed out. Check pop-up blockers and that this origin is in the OAuth client."));
+      }, ms);
+      promise.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
     });
   }
 
-  function requestToken(cfg, prompt) {
-    return new Promise(function (resolve, reject) {
-      if (accessToken && prompt !== "consent") {
+  function ensureApis() {
+    if (pickerReady) return Promise.resolve();
+    if (apisPromise) return apisPromise;
+    apisPromise = (async function () {
+      await loadScript("https://accounts.google.com/gsi/client");
+      await loadScript("https://apis.google.com/js/api.js");
+      if (typeof gapi === "undefined" || !gapi.load) throw new Error("Google API script did not initialize");
+      await new Promise(function (resolve, reject) {
+        try {
+          gapi.load("picker", {
+            callback: function () { pickerReady = true; resolve(); },
+            onerror: function () { reject(new Error("Google Picker failed to load")); },
+            timeout: 15000,
+            ontimeout: function () { reject(new Error("Google Picker load timed out")); }
+          });
+        } catch (e) { reject(e); }
+      });
+    })().catch(function (err) {
+      apisPromise = null;
+      throw err;
+    });
+    return apisPromise;
+  }
+
+  function warmup() {
+    ensureApis().catch(function () {});
+  }
+
+  function requestToken(cfg) {
+    return withTimeout(new Promise(function (resolve, reject) {
+      if (accessToken) {
         resolve(accessToken);
         return;
       }
-      tokenClient = g.google.accounts.oauth2.initTokenClient({
+      if (!g.google || !google.accounts || !google.accounts.oauth2) {
+        reject(new Error("Google sign-in script is not ready"));
+        return;
+      }
+      const tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: cfg.clientId,
         scope: SCOPE,
         callback: function (resp) {
@@ -89,27 +118,31 @@
           }
           accessToken = resp.access_token;
           resolve(accessToken);
+        },
+        error_callback: function (err) {
+          reject(new Error((err && err.message) || "Google sign-in was cancelled"));
         }
       });
-      tokenClient.requestAccessToken({ prompt: prompt || (accessToken ? "" : "consent") });
-    });
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    }), 60000, "Google sign-in");
   }
 
   function openPicker(cfg, token) {
-    return new Promise(function (resolve, reject) {
-      const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+    return withTimeout(new Promise(function (resolve, reject) {
+      const view = new google.picker.DocsView()
         .setIncludeFolders(true)
         .setSelectFolderEnabled(false)
         .setMode(google.picker.DocsViewMode.LIST);
-      const picker = new google.picker.PickerBuilder()
+      if (view.setEnableDrives) view.setEnableDrives(true);
+
+      const builder = new google.picker.PickerBuilder()
         .addView(view)
-        .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
         .setOAuthToken(token)
-        .setDeveloperKey(cfg.apiKey)
-        .setAppId(String(cfg.appId))
-        .setTitle("Load a NES, Game Boy, or Game Boy Color ROM")
+        .setOrigin(window.location.origin)
+        .setTitle("Select a .nes, .gb, .gbc, or .zip file")
         .setCallback(function (data) {
           if (!data) return;
+          if (data.action === google.picker.Action.LOADED) return;
           if (data.action === google.picker.Action.CANCEL) {
             resolve(null);
             return;
@@ -122,10 +155,15 @@
             }
             resolve(doc);
           }
-        })
-        .build();
-      picker.setVisible(true);
-    });
+        });
+
+      if (cfg.apiKey) builder.setDeveloperKey(cfg.apiKey);
+      if (cfg.appId) builder.setAppId(String(cfg.appId));
+      try {
+        builder.enableFeature(google.picker.Feature.SUPPORT_DRIVES);
+      } catch (e) {}
+      builder.build().setVisible(true);
+    }), 180000, "Drive picker");
   }
 
   async function downloadDoc(doc, token) {
@@ -133,7 +171,9 @@
       encodeURIComponent(doc.id) + "?alt=media&supportsAllDrives=true";
     const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
     if (!res.ok) {
-      throw new Error("Drive download failed (" + res.status + "). Re-pick the file, and make sure the Cloud project number is set as App ID.");
+      let extra = "";
+      try { extra = (await res.json()).error && extra; } catch (e) {}
+      throw new Error("Drive download failed (" + res.status + "). Pick the file again, and set App ID to your Cloud project number.");
     }
     const buf = await res.arrayBuffer();
     return {
@@ -160,6 +200,7 @@
     getCfg: getCfg,
     saveCfg: saveCfg,
     isConfigured: isConfigured,
-    pickRom: pickRom
+    pickRom: pickRom,
+    warmup: warmup
   };
 })(typeof window !== "undefined" ? window : globalThis);

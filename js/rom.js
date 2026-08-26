@@ -3,10 +3,19 @@
   "use strict";
 
   const GB_LOGO = [0xce, 0xed, 0x66, 0x66];
+  const ROM_EXT = {
+    nes: 1, unf: 1, unif: 1, fds: 1,
+    gb: 1, gbc: 1, sgb: 1, dmg: 1
+  };
 
   function extOf(name) {
     const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
     return m ? m[1] : "";
+  }
+
+  function baseName(name) {
+    const parts = String(name || "").split("/");
+    return parts[parts.length - 1] || name || "ROM";
   }
 
   function isZip(bytes) {
@@ -27,7 +36,14 @@
     return true;
   }
 
+  function skipJunk(bytes) {
+    if (bytes.length > 528 && isNes(bytes.subarray(512))) return bytes.subarray(512);
+    if (bytes.length > 512 + 0x150 && isGb(bytes.subarray(512))) return bytes.subarray(512);
+    return bytes;
+  }
+
   function gbLabel(bytes) {
+    bytes = skipJunk(bytes);
     if (!isGb(bytes)) return "Game Boy";
     const flag = bytes[0x143];
     if (flag === 0xc0) return "Game Boy Color";
@@ -36,6 +52,7 @@
   }
 
   function detect(bytes, name) {
+    bytes = skipJunk(bytes);
     if (isNes(bytes)) return "nes";
     if (isGb(bytes)) return "gb";
     const ext = extOf(name);
@@ -44,83 +61,52 @@
     return null;
   }
 
-  function u16(bytes, off) {
-    return bytes[off] | (bytes[off + 1] << 8);
-  }
-  function u32(bytes, off) {
-    return (bytes[off] | (bytes[off + 1] << 8) | (bytes[off + 2] << 16) | (bytes[off + 3] << 24)) >>> 0;
-  }
-
-  function findEocd(bytes) {
-    const min = Math.max(0, bytes.length - 65557);
-    for (let i = bytes.length - 22; i >= min; i--) {
-      if (u32(bytes, i) === 0x06054b50) return i;
-    }
-    return -1;
-  }
-
-  async function inflateRaw(compressed) {
-    if (typeof DecompressionStream !== "function") {
-      throw new Error("This browser cannot unzip ROMs");
-    }
-    const ds = new DecompressionStream("deflate-raw");
-    const out = new Blob([compressed]).stream().pipeThrough(ds);
-    return new Uint8Array(await new Response(out).arrayBuffer());
+  function skipJunkFile(file) {
+    const bytes = skipJunk(file.bytes);
+    if (bytes === file.bytes) return file;
+    return { name: file.name, path: file.path, bytes: bytes };
   }
 
   async function unzipEntries(bytes) {
-    const eocd = findEocd(bytes);
-    if (eocd < 0) throw new Error("Not a zip archive");
-    const count = u16(bytes, eocd + 10);
-    let off = u32(bytes, eocd + 16);
+    if (typeof JSZip === "undefined") throw new Error("Zip support failed to load");
+    const zip = await JSZip.loadAsync(bytes);
     const files = [];
-    for (let n = 0; n < count; n++) {
-      if (u32(bytes, off) !== 0x02014b50) break;
-      const method = u16(bytes, off + 10);
-      const compSize = u32(bytes, off + 20);
-      const nameLen = u16(bytes, off + 28);
-      const extraLen = u16(bytes, off + 30);
-      const commentLen = u16(bytes, off + 32);
-      const localOff = u32(bytes, off + 42);
-      const name = new TextDecoder("utf-8").decode(bytes.subarray(off + 46, off + 46 + nameLen));
-      off += 46 + nameLen + extraLen + commentLen;
-      if (!name || name.endsWith("/")) continue;
-      if (u32(bytes, localOff) !== 0x04034b50) continue;
-      const locName = u16(bytes, localOff + 26);
-      const locExtra = u16(bytes, localOff + 28);
-      const dataOff = localOff + 30 + locName + locExtra;
-      const payload = bytes.subarray(dataOff, dataOff + compSize);
-      let data;
-      if (method === 0) data = payload.slice();
-      else if (method === 8) data = await inflateRaw(payload);
-      else continue;
-      files.push({ name: name.split("/").pop(), bytes: data });
+    const names = Object.keys(zip.files);
+    for (let i = 0; i < names.length; i++) {
+      const path = names[i];
+      const entry = zip.files[path];
+      if (!entry || entry.dir) continue;
+      const name = baseName(path);
+      if (!name || name.startsWith(".") || path.indexOf("__MACOSX") !== -1) continue;
+      const buf = await entry.async("uint8array");
+      files.push({ name: name, path: path, bytes: buf });
     }
     return files;
   }
 
-  function scoreRom(file) {
-    const kind = detect(file.bytes, file.name);
-    if (kind === "nes") return 3;
-    if (kind === "gb") return 2;
-    const ext = extOf(file.name);
-    if (ext === "nes") return 1;
-    if (ext === "gb" || ext === "gbc") return 1;
-    return 0;
-  }
+  async function listRoms(bytes, name) {
+    const out = [];
 
-  async function unwrap(bytes, name) {
-    if (!isZip(bytes) && extOf(name) !== "zip") {
-      return { bytes: bytes, name: name || "ROM" };
+    async function consider(file) {
+      file = skipJunkFile(file);
+      if (isZip(file.bytes) || extOf(file.name) === "zip") {
+        try {
+          const inner = await unzipEntries(file.bytes);
+          for (let i = 0; i < inner.length; i++) await consider(inner[i]);
+        } catch (e) {}
+        return;
+      }
+      const kind = detect(file.bytes, file.name);
+      if (kind) out.push({ name: file.name, path: file.path || file.name, bytes: file.bytes, kind: kind });
     }
-    const files = await unzipEntries(bytes);
-    if (!files.length) throw new Error("Zip is empty");
-    files.sort(function (a, b) { return scoreRom(b) - scoreRom(a); });
-    const best = files[0];
-    if (scoreRom(best) === 0) {
-      throw new Error("No NES / Game Boy ROM inside that zip");
+
+    if (isZip(bytes) || extOf(name) === "zip") {
+      const files = await unzipEntries(bytes);
+      for (let i = 0; i < files.length; i++) await consider(files[i]);
+    } else {
+      await consider({ name: name || "ROM", bytes: bytes });
     }
-    return { bytes: best.bytes, name: best.name };
+    return out;
   }
 
   function romId(bytes) {
@@ -133,12 +119,14 @@
 
   g.GrokRom = {
     extOf: extOf,
+    baseName: baseName,
     isZip: isZip,
     isNes: isNes,
     isGb: isGb,
     gbLabel: gbLabel,
     detect: detect,
-    unwrap: unwrap,
-    romId: romId
+    listRoms: listRoms,
+    romId: romId,
+    skipJunk: skipJunk
   };
 })(typeof window !== "undefined" ? window : globalThis);

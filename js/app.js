@@ -53,15 +53,10 @@
     system = next;
     crt.setAttribute("data-system", next);
     document.body.setAttribute("data-system", next);
+    crt.classList.toggle("is-gb", next === "gb");
     if (next === "gb") {
-      canvas.hidden = true;
-      gbEl.hidden = false;
       $("meter-label").textContent = "System";
-      $("keys-a").textContent = "A";
-      $("keys-b").textContent = "B";
     } else {
-      canvas.hidden = false;
-      gbEl.hidden = true;
       $("meter-label").textContent = "Mapper";
     }
   }
@@ -118,16 +113,63 @@
     });
   }
 
+  function playRom(rom) {
+    if (rom.kind === "nes") loadNes(rom.bytes, rom.name);
+    else if (rom.kind === "gb") return loadGb(rom.bytes, rom.name);
+    else throw new Error("Not a NES, Game Boy, or Game Boy Color ROM");
+  }
+
+  function pickZipRom(roms) {
+    return new Promise(function (resolve) {
+      const dlg = $("zip-pick");
+      const list = $("zip-list");
+      list.innerHTML = "";
+      let chosen = null;
+      let picked = false;
+      roms.forEach(function (rom) {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn";
+        const label = rom.kind === "gb" ? GrokRom.gbLabel(rom.bytes) : "NES";
+        btn.textContent = rom.name + "  ·  " + label;
+        btn.onclick = function () {
+          picked = true;
+          chosen = rom;
+          dlg.close();
+        };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+      function onClose() {
+        dlg.removeEventListener("close", onClose);
+        resolve(picked ? chosen : null);
+      }
+      dlg.addEventListener("close", onClose);
+      $("zip-cancel").onclick = function () { dlg.close(); };
+      dlg.showModal();
+    });
+  }
+
   async function loadBytes(bytes, name) {
     try {
-      const unwrapped = await GrokRom.unwrap(bytes, name);
-      bytes = unwrapped.bytes;
-      name = unwrapped.name;
-      const kind = GrokRom.detect(bytes, name);
-      if (kind === "nes") loadNes(bytes, name);
-      else if (kind === "gb") await loadGb(bytes, name);
-      else throw new Error("Not a NES, Game Boy, or Game Boy Color ROM");
+      setHint("Reading “" + (name || "ROM") + "”…");
+      const roms = await GrokRom.listRoms(bytes, name);
+      if (!roms.length) {
+        throw new Error("No NES / Game Boy / Game Boy Color ROM found. If this is a zip, it may use 7z/RAR — re-zip as .zip.");
+      }
+      let rom = roms[0];
+      if (roms.length > 1) {
+        setHint(roms.length + " ROMs in this zip — pick one");
+        rom = await pickZipRom(roms);
+        if (!rom) {
+          setHint("Cancelled zip picker.");
+          return;
+        }
+      }
+      await playRom(rom);
     } catch (err) {
+      console.error(err);
       setHint(String(err.message || err));
     }
   }
@@ -290,6 +332,7 @@
     }
   }
   $("btn-drive").onclick = pickFromDrive;
+  GrokDrive.warmup();
 
   loadBytes(b64ToBytes(DEMO_ROM_B64), "DEMO ROM");
   raf = requestAnimationFrame(frame);

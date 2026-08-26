@@ -6,27 +6,10 @@
   let scriptLoaded = false;
   let scriptLoading = null;
 
-  function buttons() {
-    return {
-      playPause: false,
-      restart: false,
-      mute: false,
-      settings: true,
-      fullscreen: false,
-      saveState: true,
-      loadState: true,
-      screenRecord: false,
-      gamepad: true,
-      cheat: false,
-      volume: false,
-      saveSavFiles: true,
-      loadSavFiles: true,
-      quickSave: true,
-      quickLoad: true,
-      screenshot: false,
-      cacheManager: false,
-      exitEmulation: false
-    };
+  function gbFileName(name) {
+    const ext = (g.GrokRom && GrokRom.extOf(name)) || "";
+    if (ext === "gb" || ext === "gbc" || ext === "dmg" || ext === "sgb") return name;
+    return (name || "game") + ".gb";
   }
 
   function applyGlobals(file, name, opts) {
@@ -40,9 +23,18 @@
     g.EJS_backgroundColor = "#000000";
     g.EJS_controlScheme = "gb";
     g.EJS_gameID = opts.gameId || 1;
-    g.EJS_volume = opts.muted ? 0 : 1;
+    g.EJS_volume = opts.muted ? 0 : 0.7;
     g.EJS_askBeforeExit = false;
-    g.EJS_Buttons = buttons();
+    g.EJS_Buttons = {
+      playPause: { visible: true },
+      restart: { visible: true },
+      mute: { visible: true },
+      settings: { visible: true },
+      fullscreen: { visible: false },
+      saveState: { visible: true },
+      loadState: { visible: true },
+      exitEmulation: { visible: false }
+    };
     g.EJS_onGameStart = opts.onStart || function () {};
   }
 
@@ -50,16 +42,17 @@
     return {
       gameUrl: g.EJS_gameUrl,
       dataPath: CDN,
-      system: g.EJS_core,
+      system: "gb",
       gameName: g.EJS_gameName,
       color: g.EJS_color,
       buttonOpts: g.EJS_Buttons,
       volume: g.EJS_volume,
-      startOnLoad: g.EJS_startOnLoaded,
+      startOnLoad: true,
       gameId: g.EJS_gameID,
-      backgroundColor: g.EJS_backgroundColor,
-      controlScheme: g.EJS_controlScheme,
-      askBeforeExit: g.EJS_askBeforeExit
+      backgroundColor: "#000000",
+      controlScheme: "gb",
+      askBeforeExit: false,
+      cacheConfig: { enabled: true, cacheMaxSizeMB: 512, cacheMaxAgeMins: 7200 }
     };
   }
 
@@ -70,7 +63,10 @@
       const s = document.createElement("script");
       s.src = CDN + "loader.js";
       s.onload = function () { scriptLoaded = true; resolve(); };
-      s.onerror = function () { scriptLoading = null; reject(new Error("Failed to load Game Boy core")); };
+      s.onerror = function () {
+        scriptLoading = null;
+        reject(new Error("Failed to load Game Boy core from CDN"));
+      };
       document.body.appendChild(s);
     });
     return scriptLoading;
@@ -88,19 +84,25 @@
       g.EJS_emulator = null;
     }
     const el = document.getElementById("gb-player");
-    if (el) {
-      el.innerHTML = "";
-      el.hidden = true;
-    }
+    if (el) el.innerHTML = "";
+  }
+
+  function nextFrame() {
+    return new Promise(function (resolve) {
+      requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+    });
   }
 
   async function start(bytes, name, opts) {
     opts = opts || {};
     const el = document.getElementById("gb-player");
-    if (!el) throw new Error("Missing Game Boy player");
+    const crt = document.getElementById("crt-wrap");
+    if (!el || !crt) throw new Error("Missing Game Boy player");
     stop();
-    el.hidden = false;
-    const file = new File([bytes], name || "game.gb", { type: "application/octet-stream" });
+    crt.classList.add("is-gb");
+    el.removeAttribute("hidden");
+    await nextFrame();
+    const file = new File([bytes], gbFileName(name), { type: "application/octet-stream" });
     applyGlobals(file, name, opts);
     if (!scriptLoaded) {
       await loadLoader();
@@ -110,9 +112,7 @@
       throw new Error("Game Boy emulator failed to initialize");
     }
     g.EJS_emulator = new g.EmulatorJS("#gb-player", configFromGlobals());
-    if (opts.onStart) {
-      g.EJS_emulator.on("start", opts.onStart);
-    }
+    if (opts.onStart) g.EJS_emulator.on("start", opts.onStart);
   }
 
   function setPaused(paused) {
@@ -134,7 +134,7 @@
   function setMuted(muted) {
     const inst = emu();
     if (!inst || !inst.setVolume) return;
-    try { inst.setVolume(muted ? 0 : (inst.volume || 1)); } catch (e) {}
+    try { inst.setVolume(muted ? 0 : (inst.volume || 0.7)); } catch (e) {}
   }
 
   g.GrokGB = {
@@ -142,7 +142,6 @@
     stop: stop,
     setPaused: setPaused,
     reset: reset,
-    setMuted: setMuted,
-    isActive: function () { return !!(emu() && !document.getElementById("gb-player").hidden); }
+    setMuted: setMuted
   };
 })(typeof window !== "undefined" ? window : globalThis);
