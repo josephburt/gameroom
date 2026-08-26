@@ -1,0 +1,5 @@
+_site/
+tools/
+*.ppm
+*.png
+demo.nes
