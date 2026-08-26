@@ -105,6 +105,7 @@ main { padding: 8px 24px 24px; }
   display: grid;
   place-items: center;
 }
+.crt-wrap[data-system="gb"] { aspect-ratio: 160 / 144; }
 #screen {
   width: 100%;
   height: 100%;
@@ -112,9 +113,30 @@ main { padding: 8px 24px 24px; }
   display: block;
   background: #000;
 }
-#screen.smooth { image-rendering: auto; }
+.crt-wrap.smooth #screen,
+.crt-wrap.smooth .ejs_canvas { image-rendering: auto; }
+#gb-player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+#gb-player .ejs_parent,
+#gb-player .ejs_game,
+#gb-player .ejs_canvas_parent {
+  width: 100% !important;
+  height: 100% !important;
+}
+#gb-player .ejs_canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+#gb-player .ejs_virtual_gamepad { z-index: 4; }
 .crt-glass, .crt-vignette {
-  position: absolute; inset: 0; pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
 }
 .crt-wrap.crt-on .crt-glass {
   background:
@@ -132,7 +154,8 @@ main { padding: 8px 24px 24px; }
   box-shadow: inset 0 0 80px 18px rgba(0,0,0,0.55);
   border-radius: 8px;
 }
-.crt-wrap.crt-on #screen {
+.crt-wrap.crt-on #screen,
+.crt-wrap.crt-on .ejs_canvas {
   filter: contrast(1.12) saturate(1.15) brightness(1.05);
 }
 
@@ -220,6 +243,38 @@ footer {
   outline: 2px dashed var(--accent2);
   outline-offset: 6px;
   border-radius: 12px;
+}
+
+dialog#drive-setup {
+  max-width: 520px;
+  width: calc(100% - 32px);
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+}
+dialog#drive-setup::backdrop { background: rgba(0, 0, 0, 0.65); }
+.drive-form h2 { margin: 0 0 8px; letter-spacing: 0.12em; font-size: 14px; }
+.drive-form p, .drive-form li { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.drive-form ul, .drive-form ol { padding-left: 1.2em; }
+.drive-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.drive-form input {
+  appearance: none;
+  background: #0c0e14;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 8px 10px;
+  font-size: 13px;
 }
 
 @keyframes pulse {
