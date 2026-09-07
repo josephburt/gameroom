@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#07080c" />
+  <meta name="theme-color" content="#0a0c12" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -34,41 +34,51 @@
   <header class="topbar">
     <div class="brand">
       <button type="button" id="btn-home" class="logo-btn" title="Back to systems" aria-label="Back to systems">
-        <span class="logo-mark" aria-hidden="true">■</span>
+        <span class="logo-mark" aria-hidden="true"></span>
       </button>
-      <h1>GROK NES</h1>
-      <span class="tag">NES · GB · GBC · SNES</span>
+      <div class="brand-text">
+        <h1>GROK NES</h1>
+        <span class="tag">NES · GB · GBC · SNES</span>
+      </div>
     </div>
     <div class="status" aria-live="polite">
-      <span id="rom-name">Pick a system</span>
+      <span id="rom-name" class="status-rom">Pick a system</span>
+      <span class="status-sep" aria-hidden="true"></span>
       <span class="dot" id="run-dot" aria-hidden="true"></span>
-      <span id="fps">-- FPS</span>
+      <span id="fps" class="status-fps">-- FPS</span>
     </div>
   </header>
 
   <section id="home" class="home" aria-label="Systems">
-    <p class="home-lead">Choose a system, then load a ROM you own — from disk, Google Drive, or Continue. Saves and screenshots stay in this browser.</p>
+    <div class="home-hero">
+      <p class="home-eyebrow">Browser multi-system emulator</p>
+      <p class="home-lead">Choose a system, then load a ROM you own — from disk, Google Drive, or Continue. Saves and screenshots stay in this browser.</p>
+    </div>
     <div id="recents-wrap" class="recents-wrap" hidden>
       <h2>Continue</h2>
       <div id="recents" class="recents"></div>
     </div>
     <div class="sys-grid" id="sys-grid" role="list">
       <button type="button" class="sys-card" data-sys="nes" role="listitem" aria-label="NES — custom core, mappers 0 to 4 and 7">
+        <span class="sys-pip" aria-hidden="true"></span>
         <span class="sys-kicker">8-bit</span>
         <strong>NES</strong>
         <span class="sys-desc">Custom core · mappers 0–4, 7</span>
       </button>
       <button type="button" class="sys-card" data-sys="gb" role="listitem" aria-label="Game Boy — EmulatorJS gambatte">
+        <span class="sys-pip" aria-hidden="true"></span>
         <span class="sys-kicker">Handheld</span>
         <strong>Game Boy</strong>
         <span class="sys-desc">EmulatorJS · gambatte</span>
       </button>
       <button type="button" class="sys-card" data-sys="gbc" role="listitem" aria-label="Game Boy Color — EmulatorJS gambatte">
+        <span class="sys-pip" aria-hidden="true"></span>
         <span class="sys-kicker">Color</span>
         <strong>Game Boy Color</strong>
         <span class="sys-desc">EmulatorJS · gambatte</span>
       </button>
       <button type="button" class="sys-card" data-sys="snes" role="listitem" aria-label="Super NES — snes9x with Super FX and Mode 7">
+        <span class="sys-pip" aria-hidden="true"></span>
         <span class="sys-kicker">16-bit</span>
         <strong>Super NES</strong>
         <span class="sys-desc">snes9x · Super FX · Mode 7</span>
@@ -176,8 +186,8 @@
   </main>
 
   <footer>
-    <span>NES · Game Boy · Game Boy Color · Super NES</span>
-    <span>emu.burtlabs.org</span>
+    <span class="foot-systems">NES · Game Boy · Game Boy Color · Super NES</span>
+    <a class="foot-host" href="https://emu.burtlabs.org">emu.burtlabs.org</a>
   </footer>
 
   <dialog id="drive-setup">
