@@ -1,5 +1,5 @@
 /* Cache the static shell. ROM bytes and Drive traffic are never stored here. */
-const CACHE = "grok-nes-v2";
+const CACHE = "grok-nes-v3";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -21,6 +21,7 @@ const PRECACHE = [
   "/js/drive.js",
   "/js/drive-config.js",
   "/js/demo-rom.js",
+  "/js/bin.js",
   "/js/vendor/jszip.min.js",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
