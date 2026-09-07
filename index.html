@@ -7,20 +7,20 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Burt Labs GameRoom — living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own — nothing leaves this device except optional Google Drive picks." />
+  <meta name="description" content="Burt Labs GameRoom — teen-bedroom browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own — nothing leaves this device except optional Google Drive picks." />
   <meta name="author" content="Joseph Burt" />
   <link rel="canonical" href="https://gameroom.burtlabs.org/" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gameroom.burtlabs.org/" />
   <meta property="og:title" content="Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis" />
-  <meta property="og:description" content="Living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
+  <meta property="og:description" content="Teen-bedroom browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
   <meta property="og:image" content="https://gameroom.burtlabs.org/icons/icon-512.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:site_name" content="Burt Labs GameRoom" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis" />
-  <meta name="twitter:description" content="Living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
+  <meta name="twitter:description" content="Teen-bedroom browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
   <meta name="twitter:image" content="https://gameroom.burtlabs.org/icons/icon-512.png" />
   <title>Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis</title>
   <link rel="stylesheet" href="css/style.css" />
@@ -51,94 +51,142 @@
 
   <section id="home" class="home" aria-label="Game room">
     <div class="home-hero">
-      <p class="home-eyebrow">Burt Labs · late-90s entertainment center</p>
-      <p class="home-lead">Click a console on the shelf, then load a ROM you own — from disk, Google Drive, or Continue. The CRT stays on NO SIGNAL until something boots.</p>
+      <p class="home-eyebrow">Burt Labs · teen bedroom · ~1999–2003</p>
+      <p class="home-lead">Pick a console from the entertainment center, then load a ROM you own — disk, Google Drive, or Continue. The CRT stays on NO SIGNAL snow until something boots.</p>
     </div>
 
-    <div class="room" aria-label="Living room scene">
+    <div class="room" aria-label="Teen bedroom entertainment center">
+      <div class="room-sky" aria-hidden="true"></div>
+      <div class="room-wall" aria-hidden="true">
+        <div class="wall-stripe"></div>
+        <div class="poster poster-a"><span>PLAYER 1</span></div>
+        <div class="poster poster-b"><span>16-BIT</span></div>
+        <div class="poster poster-c"><span>INSERT COIN</span></div>
+        <div class="poster poster-d"><span>HIGH SCORE</span></div>
+      </div>
+      <div class="room-lamp" aria-hidden="true">
+        <div class="lamp-shade"></div>
+        <div class="lamp-stem"></div>
+        <div class="lamp-glow"></div>
+      </div>
+      <div class="room-window" aria-hidden="true">
+        <div class="window-pane"></div>
+        <div class="window-blinds"></div>
+      </div>
+      <div class="room-bed" aria-hidden="true">
+        <div class="bed-frame"></div>
+        <div class="bed-pillow"></div>
+        <div class="bed-blanket"></div>
+      </div>
       <div class="room-glow" aria-hidden="true"></div>
-      <div class="room-tv" id="room-tv">
-        <div class="room-tv-chassis">
-          <div class="room-tv-screen" id="room-tv-screen" data-signal="off">
-            <div class="no-signal" id="no-signal">
-              <span class="no-signal-snow" aria-hidden="true"></span>
-              <strong>NO SIGNAL</strong>
-              <span class="no-signal-sub" id="room-tv-sub">AV-1 · pick a console</span>
+
+      <div class="room-stage">
+        <div class="room-tv" id="room-tv">
+          <div class="tv-stand-top" aria-hidden="true"></div>
+          <div class="room-tv-chassis">
+            <div class="crt-speakers" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="room-tv-screen" id="room-tv-screen" data-signal="off">
+              <div class="no-signal" id="no-signal">
+                <span class="no-signal-snow" aria-hidden="true"></span>
+                <span class="no-signal-scan" aria-hidden="true"></span>
+                <strong>NO SIGNAL</strong>
+                <span class="no-signal-sub" id="room-tv-sub">AV-1 · pick a console</span>
+              </div>
+            </div>
+            <div class="room-tv-ledge">
+              <span class="room-tv-brand">BURT LABS</span>
+              <span class="room-tv-knobs" aria-hidden="true"><i></i><i></i></span>
+              <span class="room-tv-led" aria-hidden="true"></span>
             </div>
           </div>
-          <div class="room-tv-ledge">
-            <span class="room-tv-brand">BURT LABS</span>
-            <span class="room-tv-led" aria-hidden="true"></span>
+          <div class="tv-feet" aria-hidden="true"><i></i><i></i></div>
+        </div>
+
+        <div class="entertainment-center">
+          <div class="ec-wood ec-top" aria-hidden="true"></div>
+          <div class="ec-cabinet">
+            <div class="shelf-bay shelf-bay-upper">
+              <div class="shelf-label">Active systems</div>
+              <div class="sys-grid shelf-grid shelf-grid-live" id="sys-grid" role="list">
+                <button type="button" class="sys-card console-card" data-sys="nes" role="listitem" aria-label="NES — custom core, mappers 0 to 4 and 7">
+                  <span class="console-art console-nes" aria-hidden="true"></span>
+                  <span class="sys-kicker">8-bit</span>
+                  <strong>NES</strong>
+                  <span class="sys-desc">Custom core</span>
+                </button>
+                <button type="button" class="sys-card console-card" data-sys="snes" role="listitem" aria-label="Super NES — snes9x with Super FX and Mode 7">
+                  <span class="console-art console-snes" aria-hidden="true"></span>
+                  <span class="sys-kicker">16-bit</span>
+                  <strong>SNES</strong>
+                  <span class="sys-desc">snes9x</span>
+                </button>
+                <button type="button" class="sys-card console-card" data-sys="gb" role="listitem" aria-label="Game Boy — EmulatorJS gambatte">
+                  <span class="console-art console-gb" aria-hidden="true"></span>
+                  <span class="sys-kicker">Handheld</span>
+                  <strong>Game Boy</strong>
+                  <span class="sys-desc">gambatte</span>
+                </button>
+                <button type="button" class="sys-card console-card" data-sys="gbc" role="listitem" aria-label="Game Boy Color — EmulatorJS gambatte">
+                  <span class="console-art console-gbc" aria-hidden="true"></span>
+                  <span class="sys-kicker">Color</span>
+                  <strong>GBC</strong>
+                  <span class="sys-desc">gambatte</span>
+                </button>
+                <button type="button" class="sys-card console-card" data-sys="gba" role="listitem" aria-label="Game Boy Advance — EmulatorJS mgba">
+                  <span class="console-art console-gba" aria-hidden="true"></span>
+                  <span class="sys-kicker">Advance</span>
+                  <strong>GBA</strong>
+                  <span class="sys-desc">mgba</span>
+                </button>
+                <button type="button" class="sys-card console-card" data-sys="genesis" role="listitem" aria-label="Sega Genesis — EmulatorJS genesis_plus_gx">
+                  <span class="console-art console-genesis" aria-hidden="true"></span>
+                  <span class="sys-kicker">16-bit</span>
+                  <strong>Genesis</strong>
+                  <span class="sys-desc">segaMD</span>
+                </button>
+              </div>
+            </div>
+            <div class="shelf-bay shelf-bay-lower">
+              <div class="shelf-label shelf-label-dim">Coming soon · back shelf</div>
+              <div class="sys-grid shelf-grid shelf-grid-soon" role="list">
+                <button type="button" class="sys-card console-card is-soon" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" disabled>
+                  <span class="console-art console-soon" aria-hidden="true"></span>
+                  <span class="sys-kicker">Coming soon</span>
+                  <strong>PS1</strong>
+                  <span class="sys-desc">Later phase</span>
+                </button>
+                <button type="button" class="sys-card console-card is-soon" data-soon="n64" role="listitem" aria-label="Nintendo 64 — coming soon" disabled>
+                  <span class="console-art console-soon" aria-hidden="true"></span>
+                  <span class="sys-kicker">Coming soon</span>
+                  <strong>N64</strong>
+                  <span class="sys-desc">Later phase</span>
+                </button>
+                <button type="button" class="sys-card console-card is-soon" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" disabled>
+                  <span class="console-art console-soon" aria-hidden="true"></span>
+                  <span class="sys-kicker">Coming soon</span>
+                  <strong>DS</strong>
+                  <span class="sys-desc">Later phase</span>
+                </button>
+                <button type="button" class="sys-card console-card is-soon" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" disabled>
+                  <span class="console-art console-soon" aria-hidden="true"></span>
+                  <span class="sys-kicker">Coming soon</span>
+                  <strong>Saturn</strong>
+                  <span class="sys-desc">Later phase</span>
+                </button>
+              </div>
+            </div>
+            <p class="shelf-footnote">PS2 · GameCube · Wii · Xbox stay boxed under the bed for now.</p>
           </div>
+          <div class="ec-wood ec-base" aria-hidden="true"></div>
         </div>
       </div>
 
-      <div class="entertainment-center">
-        <div class="shelf-label">Consoles</div>
-        <div class="sys-grid shelf-grid" id="sys-grid" role="list">
-          <button type="button" class="sys-card console-card" data-sys="nes" role="listitem" aria-label="NES — custom core, mappers 0 to 4 and 7">
-            <span class="console-art console-nes" aria-hidden="true"></span>
-            <span class="sys-kicker">8-bit</span>
-            <strong>NES</strong>
-            <span class="sys-desc">Custom core</span>
-          </button>
-          <button type="button" class="sys-card console-card" data-sys="snes" role="listitem" aria-label="Super NES — snes9x with Super FX and Mode 7">
-            <span class="console-art console-snes" aria-hidden="true"></span>
-            <span class="sys-kicker">16-bit</span>
-            <strong>SNES</strong>
-            <span class="sys-desc">snes9x</span>
-          </button>
-          <button type="button" class="sys-card console-card" data-sys="gb" role="listitem" aria-label="Game Boy — EmulatorJS gambatte">
-            <span class="console-art console-gb" aria-hidden="true"></span>
-            <span class="sys-kicker">Handheld</span>
-            <strong>Game Boy</strong>
-            <span class="sys-desc">gambatte</span>
-          </button>
-          <button type="button" class="sys-card console-card" data-sys="gbc" role="listitem" aria-label="Game Boy Color — EmulatorJS gambatte">
-            <span class="console-art console-gbc" aria-hidden="true"></span>
-            <span class="sys-kicker">Color</span>
-            <strong>GBC</strong>
-            <span class="sys-desc">gambatte</span>
-          </button>
-          <button type="button" class="sys-card console-card" data-sys="gba" role="listitem" aria-label="Game Boy Advance — EmulatorJS mgba">
-            <span class="console-art console-gba" aria-hidden="true"></span>
-            <span class="sys-kicker">Advance</span>
-            <strong>GBA</strong>
-            <span class="sys-desc">mgba</span>
-          </button>
-          <button type="button" class="sys-card console-card" data-sys="genesis" role="listitem" aria-label="Sega Genesis — EmulatorJS genesis_plus_gx">
-            <span class="console-art console-genesis" aria-hidden="true"></span>
-            <span class="sys-kicker">16-bit</span>
-            <strong>Genesis</strong>
-            <span class="sys-desc">segaMD</span>
-          </button>
-          <button type="button" class="sys-card console-card is-soon" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" disabled>
-            <span class="console-art console-soon" aria-hidden="true"></span>
-            <span class="sys-kicker">Coming soon</span>
-            <strong>PS1</strong>
-            <span class="sys-desc">Later phase</span>
-          </button>
-          <button type="button" class="sys-card console-card is-soon" data-soon="n64" role="listitem" aria-label="Nintendo 64 — coming soon" disabled>
-            <span class="console-art console-soon" aria-hidden="true"></span>
-            <span class="sys-kicker">Coming soon</span>
-            <strong>N64</strong>
-            <span class="sys-desc">Later phase</span>
-          </button>
-          <button type="button" class="sys-card console-card is-soon" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" disabled>
-            <span class="console-art console-soon" aria-hidden="true"></span>
-            <span class="sys-kicker">Coming soon</span>
-            <strong>DS</strong>
-            <span class="sys-desc">Later phase</span>
-          </button>
-          <button type="button" class="sys-card console-card is-soon" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" disabled>
-            <span class="console-art console-soon" aria-hidden="true"></span>
-            <span class="sys-kicker">Coming soon</span>
-            <strong>Saturn</strong>
-            <span class="sys-desc">Later phase</span>
-          </button>
-        </div>
-        <p class="shelf-footnote">PS2 · GameCube · Wii · Xbox stay on the back shelf for now.</p>
+      <div class="room-carpet" aria-hidden="true">
+        <div class="carpet-pattern"></div>
       </div>
+      <div class="room-floor" aria-hidden="true"></div>
     </div>
 
     <div id="recents-wrap" class="recents-wrap" hidden>
