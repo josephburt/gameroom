@@ -1,6 +1,6 @@
 # Burt Labs GameRoom
 
-A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, and Sega Genesis. Play the built-in NES demo, drop in a ROM you legally own, or load one from Google Drive.
+A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, and Sega Genesis. Play the built-in NES demo, drop in a ROM you legally own, attach a local **Bookshelf** folder (Chromium), or load one from Google Drive.
 
 **Play it:** [https://gameroom.burtlabs.org](https://gameroom.burtlabs.org)
 
@@ -57,6 +57,16 @@ NES rewind is a few seconds of local snapshots. EmulatorJS systems use the core 
 
 Symmetric NATs without TURN may fail. Treat EmulatorJS netplay as best-effort.
 
+
+## Local Bookshelf + BIOS folders (Chromium)
+
+On Chrome, Edge, and other Chromium browsers, GameRoom can attach local folders with the File System Access API:
+
+1. **Bookshelf folder** — pick a directory of ROMs you own (`.nes` `.gb` `.gbc` `.gba` `.sfc` `.smc` `.md` `.gen` `.smd` `.zip`, plus a few aliases). GameRoom scans a few levels deep, lists games in a Bookshelf dialog, and loads the chosen file through the same pipeline as disk / Drive / zip picks.
+2. **BIOS folder** (optional, separate control) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, or `gbc_bios.bin`. When a matching EmulatorJS core starts (GBA mgba, and optional GB/GBC boot ROMs), GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded.
+
+Folder handles are stored in IndexedDB on this device. On the next visit Chromium may ask you to re-allow access (`queryPermission` / `requestPermission`). Safari and Firefox hide these controls and keep the normal file input + Google Drive paths.
+
 ## Load from Google Drive
 
 Drive is a picker in the browser. ROM bytes never leave your machine except the Drive → tab download. You need a Google Cloud project (once):
@@ -87,4 +97,4 @@ Then open `http://localhost:8765`.
 
 ## Legal
 
-The site is MIT-licensed. Multi-system support uses [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS). No commercial games or BIOS files are bundled. Only load ROMs you have the right to use.
+The site is MIT-licensed. Multi-system support uses [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS). No commercial games or BIOS files are bundled. Only load ROMs and BIOS files you have the right to use — local folder pickers never upload those bytes.

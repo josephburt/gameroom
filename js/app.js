@@ -99,7 +99,7 @@
         ["Start / Select", "Enter / Shift"],
         ["Turbo", "Hold Tab"]
       ],
-      note: "GBA runs through EmulatorJS mgba (core id gba). Optional BIOS is not bundled — most games boot without it."
+      note: "GBA runs through EmulatorJS mgba (core id gba). Optional BIOS is not bundled — attach a BIOS folder if you own gba_bios.bin. Most games boot without it."
     },
     genesis: {
       label: "Sega Genesis",
@@ -397,10 +397,19 @@
     $("fps").textContent = spec.label;
     running = true;
     showBoot(title, spec.label, "Loading the " + spec.label + " core. First time can take a bit — Super FX games like Star Fox need it.");
+    let biosUrl = "";
+    try {
+      if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc")) {
+        biosUrl = await GrokFolders.biosUrlFor(kind);
+      }
+    } catch (e) {
+      biosUrl = "";
+    }
     await GrokEjs.start(bytes, name, {
       muted: muted,
       volume: volume,
       core: spec.core,
+      biosUrl: biosUrl,
       color: ({ snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa" })[kind] || "#ff3b4e",
       gameId: currentRom.id,
       onStart: function () {
@@ -872,7 +881,231 @@
   $("chk-touch").checked = GrokTouch.isCoarse();
   GrokTouch.setForced(GrokTouch.isCoarse());
 
-  if ("serviceWorker" in navigator) {
+  /* —— Local folder pickers (Chromium File System Access API) —— */
+  const folderApi = GrokFolders && GrokFolders.supported();
+
+  function setFolderStatus(msg) {
+    const el = $("folder-status");
+    if (el) el.textContent = msg || "";
+  }
+
+  function showFolderControls(on) {
+    document.querySelectorAll(".folder-api-only").forEach(function (el) {
+      el.hidden = !on;
+    });
+    document.querySelectorAll(".folder-fallback").forEach(function (el) {
+      el.hidden = !!on;
+    });
+  }
+
+  function kindGuess(ext) {
+    if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "NES";
+    if (ext === "gbc") return "GBC";
+    if (ext === "gb" || ext === "sgb" || ext === "dmg") return "GB";
+    if (ext === "gba" || ext === "agb" || ext === "mb") return "GBA";
+    if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return "SNES";
+    if (ext === "md" || ext === "gen" || ext === "smd") return "Genesis";
+    if (ext === "zip") return "ZIP";
+    return ext.toUpperCase();
+  }
+
+  async function refreshFolderStatus() {
+    if (!folderApi) {
+      setFolderStatus("");
+      return;
+    }
+    const rom = GrokFolders.getRomHandle();
+    const bios = GrokFolders.getBiosHandle();
+    const bits = [];
+    if (rom) bits.push("Bookshelf: " + (rom.name || "folder"));
+    if (bios) {
+      let n = 0;
+      try { n = (await GrokFolders.listBiosFiles()).length; } catch (e) {}
+      bits.push("BIOS: " + (bios.name || "folder") + (n ? " (" + n + " file" + (n === 1 ? "" : "s") + ")" : ""));
+    }
+    setFolderStatus(bits.length ? bits.join(" · ") : "No local folders attached yet (Chromium).");
+  }
+
+  async function renderBiosList() {
+    const list = $("bios-list");
+    const status = $("bios-status");
+    if (!list || !status) return;
+    list.innerHTML = "";
+    const handle = GrokFolders.getBiosHandle();
+    if (!handle) {
+      status.textContent = "No BIOS folder attached.";
+      return;
+    }
+    try {
+      const files = await GrokFolders.listBiosFiles();
+      status.textContent = "Folder: " + (handle.name || "BIOS") + " · " + (files.length ? files.length + " recognized" : "no known BIOS names found");
+      files.forEach(function (f) {
+        const li = document.createElement("li");
+        li.textContent = f.name + "  ·  " + f.kind.toUpperCase();
+        list.appendChild(li);
+      });
+    } catch (err) {
+      status.textContent = String(err.message || err);
+    }
+  }
+
+  let bookshelfEntries = [];
+
+  function renderBookshelfList(filter) {
+    const list = $("bookshelf-list");
+    if (!list) return;
+    list.innerHTML = "";
+    const q = String(filter || "").trim().toLowerCase();
+    const rows = bookshelfEntries.filter(function (e) {
+      if (!q) return true;
+      return (e.path || e.name || "").toLowerCase().indexOf(q) !== -1;
+    });
+    if (!rows.length) {
+      const li = document.createElement("li");
+      li.className = "note";
+      li.textContent = bookshelfEntries.length ? "No matches." : "No ROMs found in this folder.";
+      list.appendChild(li);
+      return;
+    }
+    rows.forEach(function (entry) {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn";
+      btn.textContent = entry.path + "  ·  " + kindGuess(entry.ext);
+      btn.onclick = async function () {
+        try {
+          setHint("Loading “" + entry.name + "” from bookshelf…");
+          $("bookshelf-dlg").close();
+          showPlay();
+          const file = await GrokFolders.readEntry(entry);
+          await loadBytes(file.bytes, file.name);
+        } catch (err) {
+          setHint(String(err.message || err));
+        }
+      };
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+  }
+
+  async function refreshBookshelf(opts) {
+    opts = opts || {};
+    const status = $("bookshelf-status");
+    const handle = GrokFolders.getRomHandle();
+    if (!handle) {
+      bookshelfEntries = [];
+      if (status) status.textContent = "No folder attached.";
+      renderBookshelfList("");
+      return;
+    }
+    if (status) status.textContent = "Scanning “" + (handle.name || "folder") + "”…";
+    try {
+      if (opts.repermission) {
+        const ok = await GrokFolders.ensurePermission(handle);
+        if (!ok) throw new Error("Permission denied — choose the folder again.");
+      }
+      bookshelfEntries = await GrokFolders.listRomLibrary();
+      if (status) {
+        status.textContent = "Folder: " + (handle.name || "ROMs") + " · " + bookshelfEntries.length + " file" + (bookshelfEntries.length === 1 ? "" : "s");
+      }
+      renderBookshelfList(($("bookshelf-filter") && $("bookshelf-filter").value) || "");
+    } catch (err) {
+      bookshelfEntries = [];
+      if (status) status.textContent = String(err.message || err);
+      renderBookshelfList("");
+    }
+    await refreshFolderStatus();
+  }
+
+  async function openBookshelf() {
+    if (!folderApi) {
+      setHint("Folder pickers need a Chromium browser. Use Load ROM or Drive.");
+      return;
+    }
+    $("bookshelf-dlg").showModal();
+    if (!GrokFolders.getRomHandle()) {
+      await refreshBookshelf();
+      return;
+    }
+    await refreshBookshelf({ repermission: true });
+  }
+
+  async function openBiosDlg() {
+    if (!folderApi) {
+      setHint("Folder pickers need a Chromium browser.");
+      return;
+    }
+    $("bios-dlg").showModal();
+    await renderBiosList();
+    await refreshFolderStatus();
+  }
+
+  if (folderApi) {
+    showFolderControls(true);
+    $("btn-bookshelf").onclick = openBookshelf;
+    $("btn-bookshelf-home").onclick = openBookshelf;
+    $("btn-bios").onclick = openBiosDlg;
+    $("btn-bios-home").onclick = openBiosDlg;
+
+    $("bookshelf-pick").onclick = async function () {
+      try {
+        await GrokFolders.pickRomFolder();
+        await refreshBookshelf();
+        setHint("Bookshelf folder attached.");
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+        setHint(String(err.message || err));
+      }
+    };
+    $("bookshelf-refresh").onclick = function () { refreshBookshelf({ repermission: true }); };
+    $("bookshelf-clear").onclick = async function () {
+      await GrokFolders.clearRomFolder();
+      bookshelfEntries = [];
+      await refreshBookshelf();
+      setHint("Forgot bookshelf folder.");
+    };
+    $("bookshelf-close").onclick = function () { $("bookshelf-dlg").close(); };
+    $("bookshelf-filter").oninput = function () { renderBookshelfList(this.value); };
+
+    $("bios-pick").onclick = async function () {
+      try {
+        await GrokFolders.pickBiosFolder();
+        await renderBiosList();
+        await refreshFolderStatus();
+        setHint("BIOS folder attached (kept local — never uploaded).");
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+        setHint(String(err.message || err));
+      }
+    };
+    $("bios-clear").onclick = async function () {
+      await GrokFolders.clearBiosFolder();
+      await renderBiosList();
+      await refreshFolderStatus();
+      setHint("Forgot BIOS folder.");
+    };
+    $("bios-close").onclick = function () { $("bios-dlg").close(); };
+
+    Promise.all([
+      GrokFolders.restoreRomFolder().catch(function () { return null; }),
+      GrokFolders.restoreBiosFolder().catch(function () { return null; })
+    ]).then(function (rows) {
+      const rom = rows[0];
+      const bios = rows[1];
+      if (rom && rom.needsPermission) {
+        setFolderStatus("Bookshelf folder remembered — open Bookshelf and allow access when prompted.");
+      } else if (bios && bios.needsPermission) {
+        setFolderStatus("BIOS folder remembered — open BIOS and allow access when prompted.");
+      } else {
+        refreshFolderStatus();
+      }
+    });
+  } else {
+    showFolderControls(false);
+  }
+
+    if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(function () {});
   }
 

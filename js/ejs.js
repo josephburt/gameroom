@@ -63,6 +63,7 @@
     g.EJS_core = core;
     g.EJS_gameUrl = file;
     g.EJS_gameName = String(name || "game").replace(/\.[^.]+$/, "");
+    g.EJS_biosUrl = opts.biosUrl || "";
     g.EJS_pathtodata = CDN;
     g.EJS_startOnLoaded = true;
     g.EJS_color = opts.color || "#ff3b4e";
@@ -99,6 +100,7 @@
   function configFromGlobals() {
     return {
       gameUrl: g.EJS_gameUrl,
+      biosUrl: g.EJS_biosUrl || "",
       dataPath: CDN,
       system: g.EJS_core,
       gameName: g.EJS_gameName,
@@ -141,6 +143,11 @@
       try { if (inst.setVolume) inst.setVolume(0); } catch (e) {}
       g.EJS_emulator = null;
     }
+    if (g.EJS_biosUrl && String(g.EJS_biosUrl).indexOf("blob:") === 0) {
+      try { URL.revokeObjectURL(g.EJS_biosUrl); } catch (e) {}
+    }
+    g.EJS_biosUrl = "";
+    if (g.GrokFolders && GrokFolders.revokeBiosUrl) GrokFolders.revokeBiosUrl();
     const el = document.getElementById("ejs-player");
     if (el) el.innerHTML = "";
   }
