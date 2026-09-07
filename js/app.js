@@ -86,6 +86,34 @@
         ["Turbo", "Hold Tab"]
       ],
       note: "Star Fox and other Super FX games run through snes9x. First load fetches the core; after that it stays cached."
+    },
+    gba: {
+      label: "Game Boy Advance",
+      accept: ".gba,.GBA,.agb,.AGB,.zip,.ZIP",
+      meter: "System",
+      core: "gba",
+      keys: [
+        ["D-Pad", "Arrow keys / WASD"],
+        ["A / B", "X / Z"],
+        ["L / R", "Q / E"],
+        ["Start / Select", "Enter / Shift"],
+        ["Turbo", "Hold Tab"]
+      ],
+      note: "GBA runs through EmulatorJS mgba (core id gba). Optional BIOS is not bundled — most games boot without it."
+    },
+    genesis: {
+      label: "Sega Genesis",
+      accept: ".md,.MD,.gen,.GEN,.smd,.SMD,.zip,.ZIP",
+      meter: "System",
+      core: "segaMD",
+      keys: [
+        ["D-Pad", "Arrow keys / WASD"],
+        ["A / B / C", "Z / X / C"],
+        ["X / Y / Z", "A / S / D (via emulator map)"],
+        ["Start", "Enter"],
+        ["Turbo", "Hold Tab"]
+      ],
+      note: "Genesis / Mega Drive uses EmulatorJS segaMD (genesis_plus_gx). First load fetches the core from the CDN."
     }
   };
 
@@ -117,6 +145,20 @@
   }
 
   function setHint(text) { $("hint").textContent = text; }
+
+  function updateRoomTv(sys) {
+    const sub = $("room-tv-sub");
+    const screen = $("room-tv-screen");
+    if (!sub) return;
+    const spec = SYSTEMS[sys];
+    if (spec) {
+      sub.textContent = "AV-1 · " + spec.label + " selected — load a ROM";
+    } else {
+      sub.textContent = "AV-1 · pick a console";
+    }
+    if (screen) screen.setAttribute("data-signal", spec ? "standby" : "off");
+  }
+
 
   function updateHud() {
     const el = $("play-hud");
@@ -230,7 +272,7 @@
     });
   }
 
-  function isEjs(sys) { return sys === "gb" || sys === "gbc" || sys === "snes"; }
+  function isEjs(sys) { return sys === "gb" || sys === "gbc" || sys === "snes" || sys === "gba" || sys === "genesis"; }
 
   function renderKeys(sys) {
     const spec = SYSTEMS[sys] || SYSTEMS.nes;
@@ -255,6 +297,7 @@
       c.classList.toggle("selected", c.getAttribute("data-sys") === next);
     });
     if (window.GrokTouch) GrokTouch.sync();
+    updateRoomTv(next);
   }
 
   function showHome() {
@@ -358,7 +401,7 @@
       muted: muted,
       volume: volume,
       core: spec.core,
-      color: kind === "snes" ? "#7b68ee" : "#ff3b4e",
+      color: ({ snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa" })[kind] || "#ff3b4e",
       gameId: currentRom.id,
       onStart: function () {
         hideBoot();
@@ -372,9 +415,9 @@
 
   function playRom(rom) {
     if (rom.kind === "nes") loadNes(rom.bytes, rom.name);
-    else if (rom.kind === "gb" || rom.kind === "gbc" || rom.kind === "snes") {
+    else if (isEjs(rom.kind)) {
       return loadEjs(rom.bytes, rom.name, rom.kind);
-    } else throw new Error("Not a NES, Game Boy, Game Boy Color, or Super NES ROM");
+    } else throw new Error("Unsupported ROM — Phase 1 supports NES, SNES, GB, GBC, GBA, and Genesis");
   }
 
   function pickZipRom(roms) {
@@ -414,7 +457,7 @@
       showPlay();
       const roms = await GrokRom.listRoms(bytes, name);
       if (!roms.length) {
-        throw new Error("No NES / GB / GBC / SNES ROM found. If this is a zip, re-zip as .zip (not 7z/RAR).");
+        throw new Error("No supported ROM found (NES / SNES / GB / GBC / GBA / Genesis). If this is a zip, re-zip as .zip (not 7z/RAR).");
       }
       let rom = roms[0];
       if (roms.length > 1) {
@@ -624,7 +667,7 @@
   $("btn-reset").onclick = reset;
   $("btn-load").onclick = openFile;
   $("btn-load-home").onclick = function () {
-    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.sfc,.SFC,.smc,.SMC,.fig,.zip,.ZIP";
+    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.zip,.ZIP";
     openFile();
   };
   $("file").onchange = function (e) {
@@ -675,13 +718,13 @@
     if (system === "nes") {
       help.textContent = "Create a room, share the code. Both of you load the same NES ROM — the file is never sent. A few frames of delay hide the ping.";
     } else {
-      help.textContent = "GB / SNES netplay is EmulatorJS. After the game starts, open the player Settings and look for Netplay. We do not send ROM files.";
+      help.textContent = "Non-NES netplay is EmulatorJS. After the game starts, open the player Settings and look for Netplay. We do not send ROM files.";
     }
     $("netplay-dlg").showModal();
   };
   $("netplay-close").onclick = function () { $("netplay-dlg").close(); };
   $("netplay-host").onclick = async function () {
-    if (system !== "nes") { $("netplay-status").textContent = "Use the emulator Settings menu for GB / SNES."; return; }
+    if (system !== "nes") { $("netplay-status").textContent = "Use the emulator Settings menu for this system."; return; }
     if (!currentRom.id) { $("netplay-status").textContent = "Load a NES ROM first."; return; }
     try {
       const room = await GrokNetplay.create({
@@ -694,7 +737,7 @@
     }
   };
   $("netplay-join").onclick = async function () {
-    if (system !== "nes") { $("netplay-status").textContent = "Use the emulator Settings menu for GB / SNES."; return; }
+    if (system !== "nes") { $("netplay-status").textContent = "Use the emulator Settings menu for this system."; return; }
     if (!currentRom.id) { $("netplay-status").textContent = "Load the same NES ROM first."; return; }
     try {
       await GrokNetplay.join($("netplay-code").value, {
@@ -785,7 +828,9 @@
 
   document.querySelectorAll(".sys-card").forEach(function (card) {
     card.onclick = function () {
+      if (card.classList.contains("is-soon") || card.disabled) return;
       const sys = card.getAttribute("data-sys");
+      if (!sys || !SYSTEMS[sys]) return;
       if (sys === system && currentRom.id) {
         showPlay();
         if (paused) togglePause();

@@ -1,7 +1,7 @@
 {
-  "name": "GROK NES",
-  "short_name": "GROK NES",
-  "description": "Play NES, Game Boy, Game Boy Color, and Super NES in your browser. Load a ROM you own.",
+  "name": "Burt Labs GameRoom",
+  "short_name": "GameRoom",
+  "description": "Living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
