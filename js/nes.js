@@ -95,6 +95,56 @@
     }
   };
 
+  const STATE_MAGIC = 0x53454e47; /* GNES le */
+  const STATE_VER = 1;
+
+  NES.prototype.serialize = function () {
+    if (!this.cart) throw new Error("No ROM loaded");
+    const w = new g.NesWriter(24576);
+    w.u32(STATE_MAGIC);
+    w.u8(STATE_VER);
+    w.u8(this.cart.mapperId);
+    w.u32(this.cart.prg.length);
+    w.u32(this.cart.chr.length);
+    w.u8(this.cart.chrRam ? 1 : 0);
+    this.cpu.serialize(w);
+    w.bytes(this.ram);
+    this.ppu.serialize(w);
+    this.apu.serialize(w);
+    w.bytes(this.cart.prgRam);
+    if (this.cart.chrRam) w.bytes(this.cart.chr);
+    if (this.mapper && this.mapper.serialize) this.mapper.serialize(w);
+    else w.u8(0);
+    w.u8(this.ctrl1.buttons);
+    w.u8(this.ctrl2.buttons);
+    return w.done();
+  };
+
+  NES.prototype.deserialize = function (bytes) {
+    if (!this.cart) throw new Error("No ROM loaded");
+    const r = new g.NesReader(bytes);
+    if (r.u32() !== STATE_MAGIC) throw new Error("Not a GROK NES save state");
+    const ver = r.u8();
+    if (ver !== STATE_VER) throw new Error("Save state version " + ver + " is not supported");
+    const mapperId = r.u8();
+    const prgLen = r.u32();
+    const chrLen = r.u32();
+    const chrRam = !!r.u8();
+    if (mapperId !== this.cart.mapperId || prgLen !== this.cart.prg.length || chrLen !== this.cart.chr.length) {
+      throw new Error("Save state is for a different ROM");
+    }
+    this.cpu.deserialize(r);
+    r.fill(this.ram);
+    this.ppu.deserialize(r);
+    this.apu.deserialize(r);
+    r.fill(this.cart.prgRam);
+    if (chrRam) r.fill(this.cart.chr);
+    if (this.mapper && this.mapper.deserialize) this.mapper.deserialize(r);
+    else r.u8();
+    this.ctrl1.buttons = r.u8();
+    this.ctrl2.buttons = r.u8();
+  };
+
   function applySavedRam(nes) {
     if (!nes.cart || !nes.cart.battery) return;
     try {

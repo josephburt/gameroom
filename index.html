@@ -2,39 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GROK NES — NES · GB · GBC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07080c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Play NES, Game Boy, Game Boy Color, and Super NES in the browser. Load a ROM you own." />
+  <title>GROK NES — NES · GB · GBC · SNES</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 </head>
-<body data-system="nes">
+<body data-system="nes" class="view-home">
   <div class="scanline-overlay" aria-hidden="true"></div>
   <header class="topbar">
     <div class="brand">
-      <span class="logo-mark">■</span>
+      <button type="button" id="btn-home" class="logo-btn" title="Systems">
+        <span class="logo-mark">■</span>
+      </button>
       <h1>GROK NES</h1>
-      <span class="tag">NES · GB · GBC</span>
+      <span class="tag">NES · GB · GBC · SNES</span>
     </div>
     <div class="status">
-      <span id="rom-name">DEMO ROM</span>
+      <span id="rom-name">Pick a system</span>
       <span class="dot" id="run-dot"></span>
       <span id="fps">-- FPS</span>
     </div>
   </header>
 
-  <main>
+  <section id="home" class="home">
+    <p class="home-lead">Pick a system, drop in a ROM you own, or continue where you left off. Games stay in this browser.</p>
+    <div id="recents-wrap" class="recents-wrap" hidden>
+      <h2>Continue</h2>
+      <div id="recents" class="recents"></div>
+    </div>
+    <div class="sys-grid" id="sys-grid">
+      <button type="button" class="sys-card" data-sys="nes">
+        <span class="sys-kicker">8-bit</span>
+        <strong>NES</strong>
+        <span>Custom core · mappers 0–4, 7</span>
+      </button>
+      <button type="button" class="sys-card" data-sys="gb">
+        <span class="sys-kicker">Handheld</span>
+        <strong>Game Boy</strong>
+        <span>EmulatorJS · gambatte</span>
+      </button>
+      <button type="button" class="sys-card" data-sys="gbc">
+        <span class="sys-kicker">Color</span>
+        <strong>Game Boy Color</strong>
+        <span>EmulatorJS · gambatte</span>
+      </button>
+      <button type="button" class="sys-card" data-sys="snes">
+        <span class="sys-kicker">16-bit</span>
+        <strong>Super NES</strong>
+        <span>snes9x · Super FX · Mode 7</span>
+      </button>
+    </div>
+    <div class="home-actions">
+      <button type="button" id="btn-demo" class="btn primary">Play NES demo</button>
+      <button type="button" id="btn-load-home" class="btn">Load ROM</button>
+      <button type="button" id="btn-drive-home" class="btn">Google Drive</button>
+      <button type="button" id="btn-install" class="btn" hidden>Install app</button>
+    </div>
+    <p class="note home-note">Nothing is uploaded except Drive → this tab. No commercial games are bundled. Press <kbd>?</kbd> in-game for hotkeys.</p>
+  </section>
+
+  <main id="play" hidden>
     <section class="stage" id="drop-zone">
       <div class="bezel">
         <div class="crt-wrap" id="crt-wrap" data-system="nes">
           <canvas id="screen" width="256" height="240"></canvas>
-          <div id="gb-player"></div>
+          <div id="ejs-player"></div>
           <div class="crt-glass"></div>
           <div class="crt-vignette"></div>
+          <div id="play-hud" class="play-hud" aria-hidden="true"></div>
+          <div id="boot-overlay" hidden>
+            <div class="boot-card">
+              <span class="boot-sys" id="boot-sys">SUPER NES</span>
+              <strong id="boot-title">Loading</strong>
+              <p id="boot-msg">Fetching the emulator core… first time can take a moment.</p>
+              <div class="boot-bar"><i id="boot-bar"></i></div>
+            </div>
+          </div>
+          <div id="touch-overlay" hidden data-system="nes">
+            <div class="touch-shoulders">
+              <button type="button" class="tbtn shoulder" data-key="KeyQ" data-snes-only>L</button>
+              <button type="button" class="tbtn" data-act="rewind">RW</button>
+              <button type="button" class="tbtn" data-act="turbo">FF</button>
+              <button type="button" class="tbtn" data-act="pause">❚❚</button>
+              <button type="button" class="tbtn shoulder" data-key="KeyE" data-snes-only>R</button>
+            </div>
+            <div class="touch-main">
+              <div id="touch-dpad" class="dpad" role="group" aria-label="D-pad">
+                <span class="dpad-cross"></span>
+              </div>
+              <div class="touch-mid">
+                <button type="button" class="tbtn pill" data-key="ShiftLeft">Select</button>
+                <button type="button" class="tbtn pill" data-key="Enter">Start</button>
+              </div>
+              <div class="face">
+                <button type="button" class="tbtn face-y" data-key="KeyC" data-snes-only>Y</button>
+                <button type="button" class="tbtn face-x" data-key="KeyV" data-snes-only>X</button>
+                <button type="button" class="tbtn face-b" data-key="KeyZ">B</button>
+                <button type="button" class="tbtn face-a" data-key="KeyX">A</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <p class="hint" id="hint">Drop a <code>.nes</code>, <code>.gb</code>, <code>.gbc</code>, or <code>.zip</code> — or play the built-in NES demo</p>
+        <p class="hint" id="hint">Drop a ROM, or load one from disk / Drive</p>
+        <p class="rotate-hint">Turn the phone sideways for a bigger screen</p>
       </div>
 
-      <aside class="panel">
+      <aside class="panel" id="side-panel">
         <div class="btn-row">
           <button type="button" id="btn-load" class="btn primary">Load ROM</button>
           <button type="button" id="btn-drive" class="btn">Drive</button>
@@ -43,33 +123,45 @@
           <button type="button" id="btn-full" class="btn">Fullscreen</button>
         </div>
         <div class="btn-row">
+          <button type="button" id="btn-states" class="btn">Save states</button>
+          <button type="button" id="btn-netplay" class="btn">Netplay</button>
           <button type="button" id="btn-mute" class="btn">Mute</button>
+          <button type="button" id="btn-shot" class="btn">Screenshot</button>
+        </div>
+        <div class="btn-row">
           <label class="chk"><input type="checkbox" id="chk-crt" checked /> CRT filter</label>
           <label class="chk"><input type="checkbox" id="chk-smooth" /> Smooth scale</label>
+          <label class="chk"><input type="checkbox" id="chk-touch" /> Touch pad</label>
+          <label class="chk"><input type="checkbox" id="chk-ff" /> Turbo</label>
         </div>
-        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.zip,.ZIP" hidden />
+        <label class="vol">Volume
+          <input type="range" id="vol" min="0" max="100" value="70" />
+        </label>
+        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.sfc,.SFC,.smc,.SMC,.zip,.ZIP" hidden />
 
         <div class="meter">
           <span id="meter-label">Mapper</span>
-          <strong id="mapper-info">0 NROM</strong>
+          <strong id="mapper-info">—</strong>
         </div>
 
         <h2>Controls</h2>
-        <table class="keys">
+        <table class="keys" id="keys-table">
           <tr><td>D-Pad</td><td>Arrow keys / WASD</td></tr>
-          <tr><td id="keys-a">A</td><td>Z / J</td></tr>
-          <tr><td id="keys-b">B</td><td>X / K</td></tr>
+          <tr><td>A</td><td>X / L</td></tr>
+          <tr><td>B</td><td>Z / K</td></tr>
           <tr><td>Start</td><td>Enter</td></tr>
           <tr><td>Select</td><td>Shift / Space</td></tr>
+          <tr><td>Rewind</td><td>Hold Backspace</td></tr>
         </table>
-        <p class="note">Xbox / DualShock / generic gamepads work once you press a button on them. Game Boy cores also accept their own on-screen mapping.</p>
-        <p class="legal">Use ROMs you legally own. Nothing is uploaded from Drive except into this browser tab. No commercial games are bundled.</p>
+        <p class="note" id="keys-note">Xbox / DualShock / generic pads work after you press a button on them.</p>
+        <p class="legal">Use ROMs you legally own. Drive files stay in this tab. No commercial games are bundled.</p>
       </aside>
     </section>
+    <button type="button" id="btn-sheet" class="sheet-toggle btn">Controls</button>
   </main>
 
   <footer>
-    <span>NES · Game Boy · Game Boy Color</span>
+    <span>NES · Game Boy · Game Boy Color · Super NES</span>
     <span>emu.burtlabs.org</span>
   </footer>
 
@@ -114,8 +206,55 @@
     </div>
   </dialog>
 
+  <dialog id="state-dlg">
+    <div class="drive-form">
+      <h2>Save states</h2>
+      <p>Stored in this browser only. Slot 0 is the quick / auto save.</p>
+      <ul id="state-list" class="state-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="state-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="help-overlay" class="help-overlay" hidden>
+    <div class="help-card">
+      <h2>Hotkeys</h2>
+      <table class="keys">
+        <tr><td>P</td><td>Pause</td></tr>
+        <tr><td>R</td><td>Reset</td></tr>
+        <tr><td>Hold Backspace</td><td>Rewind (NES)</td></tr>
+        <tr><td>Hold Tab</td><td>Turbo</td></tr>
+        <tr><td>F5 / F7</td><td>Quick save / load</td></tr>
+        <tr><td>F8</td><td>Screenshot</td></tr>
+        <tr><td>?</td><td>This sheet</td></tr>
+      </table>
+      <p class="note">A = X / J · B = Z / K · SNES X/Y = V/C · L/R = Q/E</p>
+      <button type="button" id="help-close" class="btn primary">Got it</button>
+    </div>
+  </div>
+
+  <dialog id="netplay-dlg">
+    <div class="drive-form">
+      <h2>Netplay</h2>
+      <p id="netplay-help">NES uses a room code over WebRTC. Both of you load the same ROM — the file is never sent. GB / SNES use EmulatorJS netplay from the in-core settings menu.</p>
+      <p id="netplay-status" class="note">Idle</p>
+      <label>Room code
+        <input id="netplay-code" type="text" maxlength="8" autocomplete="off" placeholder="ABC123" />
+      </label>
+      <div class="btn-row">
+        <button type="button" id="netplay-host" class="btn primary">Create room</button>
+        <button type="button" id="netplay-join" class="btn">Join</button>
+        <button type="button" id="netplay-leave" class="btn">Leave</button>
+        <button type="button" id="netplay-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="js/vendor/jszip.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="js/demo-rom.js"></script>
+  <script src="js/bin.js"></script>
   <script src="js/cpu.js"></script>
   <script src="js/ppu.js"></script>
   <script src="js/apu.js"></script>
@@ -124,7 +263,13 @@
   <script src="js/rom.js"></script>
   <script src="js/drive-config.js"></script>
   <script src="js/drive.js"></script>
-  <script src="js/gb.js"></script>
+  <script src="js/ejs.js"></script>
+  <script src="js/idb.js"></script>
+  <script src="js/library.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/rewind.js"></script>
+  <script src="js/touch.js"></script>
+  <script src="js/netplay.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -2,4 +2,5 @@ _site/
 tools/
 *.ppm
 *.png
+!icons/*.png
 demo.nes

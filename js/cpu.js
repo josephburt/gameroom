@@ -470,5 +470,24 @@
     }
   };
 
+  CPU.prototype.serialize = function (w) {
+    w.u8(this.a); w.u8(this.x); w.u8(this.y); w.u8(this.sp); w.u8(this.p);
+    w.u16(this.pc);
+    w.u32(this.cycles);
+    w.u16(this.stall);
+    w.u8(this.nmi ? 1 : 0);
+    w.u8(this.irq ? 1 : 0);
+    w.u8(this._nmiEdge ? 1 : 0);
+  };
+  CPU.prototype.deserialize = function (r) {
+    this.a = r.u8(); this.x = r.u8(); this.y = r.u8(); this.sp = r.u8(); this.p = r.u8();
+    this.pc = r.u16();
+    this.cycles = r.u32();
+    this.stall = r.u16();
+    this.nmi = !!r.u8();
+    this.irq = !!r.u8();
+    this._nmiEdge = !!r.u8();
+  };
+
   g.NesCPU = CPU;
 })(typeof window !== "undefined" ? window : globalThis);

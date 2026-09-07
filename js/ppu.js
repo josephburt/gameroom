@@ -382,5 +382,33 @@
     for (let i = 0; i < n; i++) this.tick();
   };
 
+  PPU.prototype.serialize = function (w) {
+    w.bytes(this.vram);
+    w.bytes(this.palette);
+    w.bytes(this.oam);
+    w.bytes(this.secOam);
+    w.u8(this.ctrl); w.u8(this.mask); w.u8(this.status); w.u8(this.oamAddr);
+    w.u16(this.v); w.u16(this.t);
+    w.u8(this.x); w.u8(this.w); w.u8(this.buf);
+    w.i16(this.scanline); w.u16(this.dot);
+    w.u8(this.nmiDelay); w.u8(this.frameOdd ? 1 : 0);
+    w.u8(this.sprite0This ? 1 : 0); w.u8(this.mirroring);
+    w.u16(this._slV); w.u8(this._slX);
+  };
+  PPU.prototype.deserialize = function (r) {
+    r.fill(this.vram);
+    r.fill(this.palette);
+    r.fill(this.oam);
+    r.fill(this.secOam);
+    this.ctrl = r.u8(); this.mask = r.u8(); this.status = r.u8(); this.oamAddr = r.u8();
+    this.v = r.u16(); this.t = r.u16();
+    this.x = r.u8(); this.w = r.u8(); this.buf = r.u8();
+    this.scanline = r.i16(); this.dot = r.u16();
+    this.nmiDelay = r.u8(); this.frameOdd = !!r.u8();
+    this.sprite0This = !!r.u8(); this.mirroring = r.u8();
+    this._slV = r.u16(); this._slX = r.u8();
+    this.frameReady = false;
+  };
+
   g.NesPPU = PPU;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -139,7 +139,7 @@
         .addView(view)
         .setOAuthToken(token)
         .setOrigin(window.location.origin)
-        .setTitle("Select a .nes, .gb, .gbc, or .zip file")
+        .setTitle("Select a .nes, .gb, .gbc, .sfc, .smc, or .zip file")
         .setCallback(function (data) {
           if (!data) return;
           if (data.action === google.picker.Action.LOADED) return;

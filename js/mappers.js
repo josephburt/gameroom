@@ -59,6 +59,8 @@
   Mapper0.prototype.ppuWrite = function (addr, val) {
     if (this.cart.chrRam) this.cart.chr[addr & 0x1fff] = val;
   };
+  Mapper0.prototype.serialize = function (w) { w.u8(0); };
+  Mapper0.prototype.deserialize = function (r) { r.u8(); };
 
   function Mapper1(nes, cart) {
     this.nes = nes; this.cart = cart;
@@ -131,6 +133,13 @@
     addr &= 0x1fff;
     this.cart.chr[addr] = val;
   };
+  Mapper1.prototype.serialize = function (w) {
+    w.u8(1); w.u8(this.shift); w.u8(this.ctrl); w.u8(this.chr0); w.u8(this.chr1); w.u8(this.prg);
+  };
+  Mapper1.prototype.deserialize = function (r) {
+    r.u8(); this.shift = r.u8(); this.ctrl = r.u8(); this.chr0 = r.u8(); this.chr1 = r.u8(); this.prg = r.u8();
+    this._bank();
+  };
 
   function Mapper2(nes, cart) {
     this.nes = nes; this.cart = cart; this.bank = 0;
@@ -149,6 +158,8 @@
   };
   Mapper2.prototype.ppuRead = function (a) { return this.cart.chr[a & 0x1fff]; };
   Mapper2.prototype.ppuWrite = function (a, v) { if (this.cart.chrRam) this.cart.chr[a & 0x1fff] = v; };
+  Mapper2.prototype.serialize = function (w) { w.u8(2); w.u8(this.bank); };
+  Mapper2.prototype.deserialize = function (r) { r.u8(); this.bank = r.u8(); };
 
   function Mapper3(nes, cart) {
     this.nes = nes; this.cart = cart; this.bank = 0;
@@ -166,6 +177,8 @@
     return this.cart.chr[(this.bank * 8192 + (addr & 0x1fff)) % this.cart.chr.length];
   };
   Mapper3.prototype.ppuWrite = function (a, v) { if (this.cart.chrRam) this.cart.chr[a & 0x1fff] = v; };
+  Mapper3.prototype.serialize = function (w) { w.u8(3); w.u8(this.bank); };
+  Mapper3.prototype.deserialize = function (r) { r.u8(); this.bank = r.u8(); };
 
   function Mapper4(nes, cart) {
     this.nes = nes; this.cart = cart;
@@ -243,6 +256,16 @@
     const slot = addr >> 10;
     this.cart.chr[(this._chrOff(slot) + (addr & 0x3ff)) % this.cart.chr.length] = val;
   };
+  Mapper4.prototype.serialize = function (w) {
+    w.u8(4); w.u8(this.bankSel); w.bytes(this.banks);
+    w.u8(this.prgMode); w.u8(this.chrMode); w.u8(this.irqLatch);
+    w.u8(this.irqReload ? 1 : 0); w.u8(this.irqCounter); w.u8(this.irqEnabled ? 1 : 0); w.u8(this.mirr);
+  };
+  Mapper4.prototype.deserialize = function (r) {
+    r.u8(); this.bankSel = r.u8(); r.fill(this.banks);
+    this.prgMode = r.u8(); this.chrMode = r.u8(); this.irqLatch = r.u8();
+    this.irqReload = !!r.u8(); this.irqCounter = r.u8(); this.irqEnabled = !!r.u8(); this.mirr = r.u8();
+  };
 
   function Mapper7(nes, cart) {
     this.nes = nes; this.cart = cart; this.bank = 0;
@@ -262,6 +285,8 @@
   };
   Mapper7.prototype.ppuRead = function (a) { return this.cart.chr[a & 0x1fff]; };
   Mapper7.prototype.ppuWrite = function (a, v) { if (this.cart.chrRam) this.cart.chr[a & 0x1fff] = v; };
+  Mapper7.prototype.serialize = function (w) { w.u8(7); w.u8(this.bank); };
+  Mapper7.prototype.deserialize = function (r) { r.u8(); this.bank = r.u8(); };
 
   function createMapper(nes, cart) {
     applyMirror(nes.ppu, cart, cart.mirrorFlag);

@@ -341,5 +341,53 @@
     return s;
   };
 
+  function serPulse(w, p) {
+    w.u8(p.enabled ? 1 : 0); w.u8(p.length); w.u16(p.timer); w.u16(p.period);
+    w.u8(p.duty); w.u8(p.seq); w.u8(p.envStart ? 1 : 0); w.u8(p.envVol);
+    w.u8(p.envDiv); w.u8(p.constVol ? 1 : 0); w.u8(p.volume); w.u8(p.loop ? 1 : 0);
+    w.u8(p.sweepEn ? 1 : 0); w.u8(p.sweepP); w.u8(p.sweepN ? 1 : 0); w.u8(p.sweepS);
+    w.u8(p.sweepDiv); w.u8(p.sweepReload ? 1 : 0); w.u8(p.ch);
+  }
+  function desPulse(r, p) {
+    p.enabled = !!r.u8(); p.length = r.u8(); p.timer = r.u16(); p.period = r.u16();
+    p.duty = r.u8(); p.seq = r.u8(); p.envStart = !!r.u8(); p.envVol = r.u8();
+    p.envDiv = r.u8(); p.constVol = !!r.u8(); p.volume = r.u8(); p.loop = !!r.u8();
+    p.sweepEn = !!r.u8(); p.sweepP = r.u8(); p.sweepN = !!r.u8(); p.sweepS = r.u8();
+    p.sweepDiv = r.u8(); p.sweepReload = !!r.u8(); p.ch = r.u8();
+  }
+  function serTri(w, t) {
+    w.u8(t.enabled ? 1 : 0); w.u8(t.length); w.u16(t.timer); w.u16(t.period);
+    w.u8(t.seq); w.u8(t.lin); w.u8(t.linReload); w.u8(t.linCtrl ? 1 : 0); w.u8(t.reloadF ? 1 : 0);
+  }
+  function desTri(r, t) {
+    t.enabled = !!r.u8(); t.length = r.u8(); t.timer = r.u16(); t.period = r.u16();
+    t.seq = r.u8(); t.lin = r.u8(); t.linReload = r.u8(); t.linCtrl = !!r.u8(); t.reloadF = !!r.u8();
+  }
+  function serNoi(w, n) {
+    w.u8(n.enabled ? 1 : 0); w.u8(n.length); w.u16(n.timer); w.u16(n.period);
+    w.u16(n.shift); w.u8(n.mode ? 1 : 0); w.u8(n.envStart ? 1 : 0); w.u8(n.envVol);
+    w.u8(n.envDiv); w.u8(n.constVol ? 1 : 0); w.u8(n.volume); w.u8(n.loop ? 1 : 0);
+  }
+  function desNoi(r, n) {
+    n.enabled = !!r.u8(); n.length = r.u8(); n.timer = r.u16(); n.period = r.u16();
+    n.shift = r.u16(); n.mode = !!r.u8(); n.envStart = !!r.u8(); n.envVol = r.u8();
+    n.envDiv = r.u8(); n.constVol = !!r.u8(); n.volume = r.u8(); n.loop = !!r.u8();
+  }
+
+  APU.prototype.serialize = function (w) {
+    serPulse(w, this.p1); serPulse(w, this.p2);
+    serTri(w, this.tri); serNoi(w, this.noi);
+    w.u32(this.cycles); w.u8(this.frame);
+    w.u8(this.mode5 ? 1 : 0); w.u8(this.irqInhibit ? 1 : 0); w.u8(this.frameIrq ? 1 : 0);
+  };
+  APU.prototype.deserialize = function (r) {
+    desPulse(r, this.p1); desPulse(r, this.p2);
+    desTri(r, this.tri); desNoi(r, this.noi);
+    this.cycles = r.u32(); this.frame = r.u8();
+    this.mode5 = !!r.u8(); this.irqInhibit = !!r.u8(); this.frameIrq = !!r.u8();
+    this.sHead = this.sTail = 0;
+    this.sAcc = 0;
+  };
+
   g.NesAPU = APU;
 })(typeof window !== "undefined" ? window : globalThis);
