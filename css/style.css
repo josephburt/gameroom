@@ -35,22 +35,26 @@ body {
 
 .skip-link {
   position: absolute;
-  left: 12px;
-  top: 8px;
+  left: max(12px, var(--safe-l));
+  top: max(8px, var(--safe-t));
   z-index: 100;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: var(--accent);
   color: #fff;
   border-radius: 8px;
   font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
   text-decoration: none;
   transform: translateY(-160%);
   transition: transform 0.15s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
-.skip-link:focus {
+.skip-link:focus,
+.skip-link:focus-visible {
   transform: translateY(0);
   outline: 2px solid #fff;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 :focus-visible {
@@ -179,7 +183,9 @@ h1 {
 .sys-card.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 12px 32px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #1c2030 0%, #141722 100%);
 }
+.sys-card.selected .sys-kicker { color: var(--accent); }
 .sys-kicker {
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -198,7 +204,8 @@ h1 {
   line-height: 1.4;
   margin-top: auto;
 }
-.home-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.home-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; align-items: center; }
+.home-actions .btn { min-width: 7.25rem; }
 .home-note { margin-top: 20px; max-width: 42em; }
 
 main { padding: 8px 24px 24px; }
@@ -328,7 +335,11 @@ main { padding: 8px 24px 24px; }
   cursor: pointer;
   min-height: 40px;
 }
-.btn:hover, .btn:focus-visible { border-color: #4a5570; background: #252a3c; outline: none; }
+.btn:hover { border-color: #4a5570; background: #252a3c; }
+.btn:focus-visible {
+  border-color: var(--accent2);
+  background: #252a3c;
+}
 .btn.primary {
   background: var(--accent);
   border-color: transparent;
@@ -410,6 +421,13 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.65); }
   padding: 8px 10px;
   font-size: 13px;
 }
+.drive-form input:focus-visible,
+.vol input:focus-visible,
+.chk input:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
+  border-color: var(--accent2);
+}
 .zip-list, .state-list {
   list-style: none;
   margin: 12px 0;
@@ -473,8 +491,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.65); }
 .tbtn {
   appearance: none;
   border: 0;
-  min-width: 52px;
-  min-height: 52px;
+  min-width: 56px;
+  min-height: 56px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
@@ -484,15 +502,26 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.65); }
   backdrop-filter: blur(2px);
 }
 .tbtn:active, .tbtn.is-down { background: var(--accent); }
-.tbtn.pill { border-radius: 20px; min-width: 72px; min-height: 36px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
-.tbtn.shoulder { border-radius: 10px; min-width: 64px; min-height: 40px; }
+.tbtn.pill {
+  border-radius: 20px;
+  min-width: 76px;
+  min-height: 40px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tbtn.shoulder { border-radius: 10px; min-width: 68px; min-height: 44px; }
 .dpad {
-  width: 132px;
-  height: 132px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.10);
   position: relative;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 2px 12px rgba(0,0,0,0.3);
+}
+.dpad:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
 }
 .dpad-cross {
   position: absolute;
@@ -519,17 +548,18 @@ body[data-system="gb"] [data-snes-only],
 body[data-system="gbc"] [data-snes-only] { display: none !important; }
 
 .sheet-toggle { display: none; }
+.sheet-toggle {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .logo-mark { animation: none; }
-  .sys-card { transition: none; }
-  .sys-card:hover { transform: none; }
-}
 
 @media (max-width: 900px) {
   .stage { grid-template-columns: 1fr; }
@@ -551,6 +581,12 @@ body[data-system="gbc"] [data-snes-only] { display: none !important; }
     right: max(16px, var(--safe-r));
     bottom: calc(16px + var(--safe-b));
     z-index: 30;
+    min-height: 48px;
+    padding: 10px 16px;
+  }
+  body.view-play.sheet-open .sheet-toggle {
+    border-color: var(--accent);
+    background: #252a3c;
   }
   body.view-play .panel {
     position: fixed;
@@ -562,6 +598,7 @@ body[data-system="gbc"] [data-snes-only] { display: none !important; }
     transform: translateY(110%);
     transition: transform 0.2s ease;
     padding-bottom: calc(18px + var(--safe-b));
+    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.45);
   }
   body.view-play.sheet-open .panel { transform: translateY(0); }
   .rotate-hint {
@@ -569,8 +606,12 @@ body[data-system="gbc"] [data-snes-only] { display: none !important; }
     text-align: center;
     color: var(--muted);
     font-size: 12px;
-    margin: 4px 0 8px;
+    margin: 6px 0 8px;
     letter-spacing: 0.04em;
+    padding: 6px 12px;
+    border: 1px dashed var(--line);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.22);
   }
   body.view-play.rom-loaded .rotate-hint { display: none; }
 }
@@ -794,5 +835,23 @@ body[data-system="snes"] .face-y { background: #3d8b4a; }
 body[data-system="snes"] .tbtn.shoulder { background: rgba(255,255,255,0.22); }
 
 @media (prefers-reduced-motion: reduce) {
+  .logo-mark { animation: none; opacity: 1; }
   .boot-bar i { animation: none; width: 100%; }
+  .sys-card { transition: none; }
+  .sys-card:hover { transform: none; }
+  .skip-link { transition: none; }
+  body.view-play .panel { transition: none; }
+  .scanline-overlay { opacity: 0.28; }
+  .crt-wrap.crt-on .crt-glass {
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 20%, transparent 80%, rgba(0,0,0,0.16));
+    opacity: 0.55;
+  }
+  .crt-wrap.crt-on #screen,
+  .crt-wrap.crt-on .ejs_canvas {
+    filter: contrast(1.04) saturate(1.04) brightness(1.01);
+  }
+}
+
+@media (max-width: 520px) {
+  .home-actions .btn { flex: 1 1 calc(50% - 10px); min-width: 0; }
 }
