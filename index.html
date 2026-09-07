@@ -37,9 +37,14 @@
         <span class="logo-mark" aria-hidden="true"></span>
       </button>
       <div class="brand-text">
-        <h1>GameRoom</h1>
-        <span class="tag">Burt Labs</span>
+        <h1>Burt Labs GameRoom</h1>
+        <span class="tag">Browser emulator · NES · SNES · GB · GBA · Genesis</span>
       </div>
+    </div>
+    <div class="top-links" aria-label="Resources">
+      <a class="top-link" href="https://github.com/josephburt/gameroom" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a class="top-link" href="https://github.com/josephburt/gameroom#readme" target="_blank" rel="noopener noreferrer">Docs</a>
+      <button type="button" class="top-link top-link-btn" id="btn-about-top" data-nav="about">About</button>
     </div>
     <div class="status" aria-live="polite">
       <span id="rom-name" class="status-rom">Pick a console</span>
@@ -49,162 +54,129 @@
     </div>
   </header>
 
-  <section id="home" class="home" aria-label="Game room">
-    <div class="home-hero">
-      <p class="home-eyebrow">Burt Labs · teen bedroom · ~1999–2003</p>
-      <p class="home-lead">Pick a console from the entertainment center, then load a ROM you own — disk, Google Drive, or Continue. The CRT stays on NO SIGNAL snow until something boots.</p>
-    </div>
+  <section id="home" class="home home--mock" aria-label="Game room">
+    <aside class="side-nav" aria-label="GameRoom navigation">
+      <nav class="side-nav-panel" aria-label="Sections">
+        <button type="button" class="side-nav-item is-active" data-nav="consoles" aria-current="page">
+          <span class="side-nav-ico" aria-hidden="true">▣</span>
+          <span>Consoles</span>
+        </button>
+        <button type="button" class="side-nav-item" data-nav="saves">
+          <span class="side-nav-ico" aria-hidden="true">💾</span>
+          <span>Saved Games</span>
+        </button>
+        <button type="button" class="side-nav-item" data-nav="cheats">
+          <span class="side-nav-ico" aria-hidden="true">🎮</span>
+          <span>Cheats</span>
+        </button>
+        <button type="button" class="side-nav-item" data-nav="settings">
+          <span class="side-nav-ico" aria-hidden="true">⚙</span>
+          <span>Settings</span>
+        </button>
+        <button type="button" class="side-nav-item" data-nav="about">
+          <span class="side-nav-ico" aria-hidden="true">ℹ</span>
+          <span>About</span>
+        </button>
+      </nav>
+      <div class="side-nav-status">
+        <p class="side-tip"><span aria-hidden="true">💡</span> Load a ROM or pick a console to get started.</p>
+        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v11</span></p>
+      </div>
+    </aside>
 
-    <div class="room" aria-label="Teen bedroom entertainment center">
-      <div class="room-sky" aria-hidden="true"></div>
-      <div class="room-wall" aria-hidden="true">
-        <div class="wall-stripe"></div>
-        <div class="poster poster-a"><span>PLAYER 1</span></div>
-        <div class="poster poster-b"><span>16-BIT</span></div>
-        <div class="poster poster-c"><span>INSERT COIN</span></div>
-        <div class="poster poster-d"><span>HIGH SCORE</span></div>
-      </div>
-      <div class="room-lamp" aria-hidden="true">
-        <div class="lamp-shade"></div>
-        <div class="lamp-stem"></div>
-        <div class="lamp-glow"></div>
-      </div>
-      <div class="room-window" aria-hidden="true">
-        <div class="window-pane"></div>
-        <div class="window-blinds"></div>
-      </div>
-      <div class="room-bed" aria-hidden="true">
-        <div class="bed-frame"></div>
-        <div class="bed-pillow"></div>
-        <div class="bed-blanket"></div>
-      </div>
-      <div class="room-glow" aria-hidden="true"></div>
+    <div class="home-main">
+      <div class="room room--photo" aria-label="Teen bedroom entertainment center">
+        <img
+          class="room-photo"
+          src="assets/room/bedroom-scene.jpg"
+          srcset="assets/room/bedroom-scene-sm.jpg 840w, assets/room/bedroom-scene.jpg 1290w"
+          sizes="(max-width: 900px) 100vw, min(1100px, 72vw)"
+          alt="Late-90s teen bedroom with CRT, lava lamp, beanbag, and consoles on a wood entertainment center"
+          width="1290"
+          height="816"
+          decoding="async"
+          fetchpriority="high"
+        />
 
-      <div class="room-stage">
-        <div class="room-tv" id="room-tv">
-          <div class="tv-stand-top" aria-hidden="true"></div>
-          <div class="room-tv-chassis">
-            <div class="crt-speakers" aria-hidden="true">
-              <span></span><span></span><span></span>
-            </div>
-            <div class="room-tv-screen" id="room-tv-screen" data-signal="off">
-              <div class="no-signal" id="no-signal">
-                <span class="no-signal-snow" aria-hidden="true"></span>
-                <span class="no-signal-scan" aria-hidden="true"></span>
-                <strong>NO SIGNAL</strong>
-                <span class="no-signal-sub" id="room-tv-sub">AV-1 · pick a console</span>
-              </div>
-            </div>
-            <div class="room-tv-ledge">
-              <span class="room-tv-brand">BURT LABS</span>
-              <span class="room-tv-knobs" aria-hidden="true"><i></i><i></i></span>
-              <span class="room-tv-led" aria-hidden="true"></span>
-            </div>
+        <div class="room-tv-hud" id="room-tv-screen" data-signal="off">
+          <div class="no-signal" id="no-signal">
+            <span class="no-signal-snow" aria-hidden="true"></span>
+            <span class="no-signal-scan" aria-hidden="true"></span>
+            <strong>NO SIGNAL</strong>
+            <span class="no-signal-sub" id="room-tv-sub">Load a ROM or pick a console</span>
           </div>
-          <div class="tv-feet" aria-hidden="true"><i></i><i></i></div>
         </div>
 
-        <div class="entertainment-center">
-          <div class="ec-wood ec-top" aria-hidden="true"></div>
-          <div class="ec-cabinet">
-            <div class="shelf-bay shelf-bay-upper">
-              <div class="shelf-label">Active systems</div>
-              <div class="sys-grid shelf-grid shelf-grid-live" id="sys-grid" role="list">
-                <button type="button" class="sys-card console-card" data-sys="nes" role="listitem" aria-label="NES — custom core, mappers 0 to 4 and 7">
-                  <span class="console-art console-nes" aria-hidden="true"></span>
-                  <span class="sys-kicker">8-bit</span>
-                  <strong>NES</strong>
-                  <span class="sys-desc">Custom core</span>
-                </button>
-                <button type="button" class="sys-card console-card" data-sys="snes" role="listitem" aria-label="Super NES — snes9x with Super FX and Mode 7">
-                  <span class="console-art console-snes" aria-hidden="true"></span>
-                  <span class="sys-kicker">16-bit</span>
-                  <strong>SNES</strong>
-                  <span class="sys-desc">snes9x</span>
-                </button>
-                <button type="button" class="sys-card console-card" data-sys="gb" role="listitem" aria-label="Game Boy — EmulatorJS gambatte">
-                  <span class="console-art console-gb" aria-hidden="true"></span>
-                  <span class="sys-kicker">Handheld</span>
-                  <strong>Game Boy</strong>
-                  <span class="sys-desc">gambatte</span>
-                </button>
-                <button type="button" class="sys-card console-card" data-sys="gbc" role="listitem" aria-label="Game Boy Color — EmulatorJS gambatte">
-                  <span class="console-art console-gbc" aria-hidden="true"></span>
-                  <span class="sys-kicker">Color</span>
-                  <strong>GBC</strong>
-                  <span class="sys-desc">gambatte</span>
-                </button>
-                <button type="button" class="sys-card console-card" data-sys="gba" role="listitem" aria-label="Game Boy Advance — EmulatorJS mgba">
-                  <span class="console-art console-gba" aria-hidden="true"></span>
-                  <span class="sys-kicker">Advance</span>
-                  <strong>GBA</strong>
-                  <span class="sys-desc">mgba</span>
-                </button>
-                <button type="button" class="sys-card console-card" data-sys="genesis" role="listitem" aria-label="Sega Genesis — EmulatorJS genesis_plus_gx">
-                  <span class="console-art console-genesis" aria-hidden="true"></span>
-                  <span class="sys-kicker">16-bit</span>
-                  <strong>Genesis</strong>
-                  <span class="sys-desc">segaMD</span>
-                </button>
-              </div>
-            </div>
-            <div class="shelf-bay shelf-bay-lower">
-              <div class="shelf-label shelf-label-dim">Coming soon · back shelf</div>
-              <div class="sys-grid shelf-grid shelf-grid-soon" role="list">
-                <button type="button" class="sys-card console-card is-soon" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" disabled>
-                  <span class="console-art console-soon" aria-hidden="true"></span>
-                  <span class="sys-kicker">Coming soon</span>
-                  <strong>PS1</strong>
-                  <span class="sys-desc">Later phase</span>
-                </button>
-                <button type="button" class="sys-card console-card is-soon" data-soon="n64" role="listitem" aria-label="Nintendo 64 — coming soon" disabled>
-                  <span class="console-art console-soon" aria-hidden="true"></span>
-                  <span class="sys-kicker">Coming soon</span>
-                  <strong>N64</strong>
-                  <span class="sys-desc">Later phase</span>
-                </button>
-                <button type="button" class="sys-card console-card is-soon" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" disabled>
-                  <span class="console-art console-soon" aria-hidden="true"></span>
-                  <span class="sys-kicker">Coming soon</span>
-                  <strong>DS</strong>
-                  <span class="sys-desc">Later phase</span>
-                </button>
-                <button type="button" class="sys-card console-card is-soon" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" disabled>
-                  <span class="console-art console-soon" aria-hidden="true"></span>
-                  <span class="sys-kicker">Coming soon</span>
-                  <strong>Saturn</strong>
-                  <span class="sys-desc">Later phase</span>
-                </button>
-              </div>
-            </div>
-            <p class="shelf-footnote">PS2 · GameCube · Wii · Xbox stay boxed under the bed for now.</p>
-          </div>
-          <div class="ec-wood ec-base" aria-hidden="true"></div>
+        <div class="hotspots" id="sys-grid" role="list">
+          <!-- Middle shelf: home consoles -->
+          <button type="button" class="sys-card hotspot" style="--x:16.5%;--y:50%;--w:10%;--h:11.5%" data-sys="nes" role="listitem" aria-label="NES — click to play" data-tip="NES — click to play">
+            <span class="hotspot-label">NES — click to play</span>
+          </button>
+          <button type="button" class="sys-card hotspot" style="--x:26.5%;--y:50%;--w:10%;--h:11.5%" data-sys="snes" role="listitem" aria-label="SNES — click to play" data-tip="SNES — click to play">
+            <span class="hotspot-label">SNES — click to play</span>
+          </button>
+          <button type="button" class="sys-card hotspot" style="--x:36.5%;--y:49.5%;--w:10%;--h:12%" data-sys="genesis" role="listitem" aria-label="Genesis — click to play" data-tip="Genesis — click to play">
+            <span class="hotspot-label">Genesis — click to play</span>
+          </button>
+          <button type="button" class="sys-card hotspot is-soon" style="--x:46.5%;--y:49.5%;--w:10%;--h:12%" data-soon="n64" role="listitem" aria-label="N64 — coming soon" data-tip="N64 — coming soon" aria-disabled="true">
+            <span class="hotspot-label">N64 — coming soon</span>
+          </button>
+          <button type="button" class="sys-card hotspot is-soon" style="--x:56.5%;--y:49.5%;--w:10%;--h:12%" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" data-tip="PS1 — coming soon" aria-disabled="true">
+            <span class="hotspot-label">PS1 — coming soon</span>
+          </button>
+          <button type="button" class="sys-card hotspot is-soon" style="--x:66.5%;--y:49.5%;--w:10.5%;--h:12%" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" data-tip="Saturn — coming soon" aria-disabled="true">
+            <span class="hotspot-label">Saturn — coming soon</span>
+          </button>
+
+          <!-- Bottom shelf: handhelds -->
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:16.5%;--y:67.5%;--w:9%;--h:14%" data-sys="gb" role="listitem" aria-label="Game Boy — click to play" data-tip="Game Boy — click to play">
+            <span class="hotspot-label">Game Boy — click to play</span>
+          </button>
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:25.5%;--y:67.5%;--w:9%;--h:14%" data-sys="gbc" role="listitem" aria-label="Game Boy Color — click to play" data-tip="GBC — click to play">
+            <span class="hotspot-label">GBC — click to play</span>
+          </button>
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:34.5%;--y:67.5%;--w:9.5%;--h:14%" data-sys="gba" role="listitem" aria-label="Game Boy Advance — click to play" data-tip="GBA — click to play">
+            <span class="hotspot-label">GBA — click to play</span>
+          </button>
+          <button type="button" class="sys-card hotspot hotspot--hand is-soon" style="--x:44%;--y:67%;--w:10%;--h:14.5%" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" data-tip="DS — coming soon" aria-disabled="true">
+            <span class="hotspot-label">DS — coming soon</span>
+          </button>
         </div>
       </div>
 
-      <div class="room-carpet" aria-hidden="true">
-        <div class="carpet-pattern"></div>
+      <div id="recents-wrap" class="recents-wrap" hidden>
+        <h2>Continue</h2>
+        <div id="recents" class="recents"></div>
       </div>
-      <div class="room-floor" aria-hidden="true"></div>
-    </div>
 
-    <div id="recents-wrap" class="recents-wrap" hidden>
-      <h2>Continue</h2>
-      <div id="recents" class="recents"></div>
+      <div class="home-actions mock-actions" role="group" aria-label="Load actions">
+        <button type="button" id="btn-load-home" class="btn mock-action">
+          <span class="mock-action-ico" aria-hidden="true">📁</span>
+          <span>Load game</span>
+        </button>
+        <button type="button" id="btn-drive-home" class="btn mock-action">
+          <span class="mock-action-ico" aria-hidden="true">☁</span>
+          <span>Google Drive</span>
+        </button>
+        <button type="button" id="btn-bookshelf-home" class="btn mock-action folder-api-only" hidden>
+          <span class="mock-action-ico" aria-hidden="true">📚</span>
+          <span>Bookshelf folder</span>
+        </button>
+        <button type="button" id="btn-bios-home" class="btn mock-action folder-api-only" hidden>
+          <span class="mock-action-ico" aria-hidden="true">💾</span>
+          <span>BIOS folder</span>
+        </button>
+        <button type="button" id="btn-continue-home" class="btn mock-action">
+          <span class="mock-action-ico" aria-hidden="true">▶</span>
+          <span>Continue</span>
+        </button>
+        <button type="button" id="btn-demo" class="btn mock-action mock-action--ghost">Play NES demo</button>
+        <button type="button" id="btn-install" class="btn mock-action mock-action--ghost" hidden>Install app</button>
+      </div>
+      <p class="note home-note folder-fallback" hidden>This browser cannot attach local folders (needs Chromium). Use <strong>Load game</strong>, drag-and-drop, or Google Drive instead.</p>
+      <p class="note home-note" id="folder-status"></p>
+      <p class="note home-note">Use ROMs you legally own. Files stay on this device (Drive picks download into this tab only). No commercial games or BIOS files are bundled. In-game: press <kbd>?</kbd> for hotkeys. Scene art is the bedroom north-star mock (layout reference).</p>
     </div>
-
-    <div class="home-actions">
-      <button type="button" id="btn-demo" class="btn primary">Play NES demo</button>
-      <button type="button" id="btn-load-home" class="btn">Load game</button>
-      <button type="button" id="btn-bookshelf-home" class="btn folder-api-only" hidden>Bookshelf folder</button>
-      <button type="button" id="btn-drive-home" class="btn">Google Drive</button>
-      <button type="button" id="btn-bios-home" class="btn folder-api-only" hidden>BIOS folder</button>
-      <button type="button" id="btn-install" class="btn" hidden>Install app</button>
-    </div>
-    <p class="note home-note folder-fallback" hidden>This browser cannot attach local folders (needs Chromium). Use <strong>Load game</strong>, drag-and-drop, or Google Drive instead.</p>
-    <p class="note home-note" id="folder-status"></p>
-    <p class="note home-note">Use ROMs you legally own. Files stay on this device (Drive picks download into this tab only). No commercial games or BIOS files are bundled. In-game: press <kbd>?</kbd> for hotkeys.</p>
   </section>
 
   <main id="play" hidden aria-label="Emulator">
@@ -424,6 +396,40 @@
         <button type="button" id="netplay-join" class="btn">Join</button>
         <button type="button" id="netplay-leave" class="btn">Leave</button>
         <button type="button" id="netplay-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="about-dlg">
+    <div class="drive-form">
+      <h2>About Burt Labs GameRoom</h2>
+      <p>Teen-bedroom browser emulator for NES (custom core), SNES, Game Boy, GBC, GBA, and Genesis (EmulatorJS). Load ROMs you own from disk or Google Drive.</p>
+      <p class="note">Hosted at <a href="https://gameroom.burtlabs.org">gameroom.burtlabs.org</a>. No commercial ROMs or BIOS files are bundled. Bedroom scene art is the visual north-star mock for layout.</p>
+      <div class="btn-row">
+        <button type="button" id="about-close" class="btn primary">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="cheats-dlg">
+    <div class="drive-form">
+      <h2>Cheats</h2>
+      <p>Cheat codes are not wired yet — this panel is a stub so the bedroom nav matches the north-star mock.</p>
+      <p class="note">Coming in a later pass. For now, play fair (or edit RAM yourself).</p>
+      <div class="btn-row">
+        <button type="button" id="cheats-close" class="btn primary">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="settings-home-dlg">
+    <div class="drive-form">
+      <h2>Settings</h2>
+      <p>In-play controls (CRT filter, touch pad, volume, save states) live on the emulator side panel after you load a ROM.</p>
+      <label class="chk"><input type="checkbox" id="chk-crt-home" checked /> Prefer CRT filter when playing</label>
+      <label class="chk"><input type="checkbox" id="chk-touch-home" /> Prefer on-screen touch pad</label>
+      <div class="btn-row">
+        <button type="button" id="settings-home-close" class="btn primary">Done</button>
       </div>
     </div>
   </dialog>
