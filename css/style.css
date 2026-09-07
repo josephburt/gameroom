@@ -2091,15 +2091,27 @@ body.view-home .tag {
 
 .room-tv-hud {
   position: absolute;
-  left: 20.5%;
-  top: 10%;
-  width: 27.5%;
-  height: 30%;
-  border-radius: 6px;
-  overflow: hidden;
-  pointer-events: none;
+  /* Sit inside CRT glass plane of cleaned bedroom-scene.jpg */
+  left: 23.2%;
+  top: 12.4%;
+  width: 21.8%;
+  height: 26.2%;
   z-index: 2;
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  perspective: 900px;
+  perspective-origin: 50% 40%;
+}
+.room-tv-hud-plane {
+  position: absolute;
+  inset: 0;
+  border-radius: 10% / 14%;
+  overflow: hidden;
+  transform: rotateY(-7deg) rotateX(5deg) skewX(-1.5deg) scale(1.02, 1.04);
+  transform-origin: 50% 55%;
+  box-shadow:
+    inset 0 0 18px rgba(0, 0, 0, 0.55),
+    inset 0 0 2px rgba(180, 220, 255, 0.25);
+  background: rgba(6, 10, 18, 0.12);
 }
 .room-tv-hud .no-signal {
   position: absolute;
@@ -2110,36 +2122,37 @@ body.view-home .tag {
   gap: 6px;
   padding: 8px;
   text-align: center;
-  background: rgba(8, 12, 20, 0.18);
+  background: rgba(8, 12, 20, 0.12);
 }
 .room-tv-hud .no-signal strong {
   position: relative;
   z-index: 1;
-  font-size: clamp(10px, 1.6vw, 18px);
-  letter-spacing: 0.18em;
-  padding: 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(10, 12, 16, 0.72);
-  border-radius: 4px;
+  font-size: clamp(9px, 1.35vw, 15px);
+  letter-spacing: 0.16em;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(10, 12, 16, 0.78);
+  border-radius: 3px;
+  transform: rotateX(2deg);
 }
 .room-tv-hud .no-signal-sub {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 8%;
+  left: 7%;
+  right: 7%;
+  bottom: 9%;
   z-index: 1;
-  font-size: clamp(8px, 1vw, 11px);
-  padding: 4px 8px;
+  font-size: clamp(7px, 0.85vw, 10px);
+  padding: 3px 7px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(0, 0, 0, 0.66);
   color: #e8ecf4;
   letter-spacing: 0.02em;
 }
 .room-tv-hud .no-signal-snow {
   position: absolute;
-  inset: -10%;
+  inset: -12%;
   z-index: 0;
-  opacity: 0.55;
+  opacity: 0.42;
   background:
     repeating-linear-gradient(0deg, #9ab 0 1px, #234 1px 2px),
     repeating-linear-gradient(90deg, #bcd 0 1px, #123 1px 3px);
@@ -2158,7 +2171,7 @@ body.view-home .tag {
   );
   background-size: 100% 28%;
   animation: scan-drift 2.8s linear infinite;
-  opacity: 0.5;
+  opacity: 0.45;
   pointer-events: none;
 }
 @keyframes snow-shift {
@@ -2189,8 +2202,8 @@ body.view-home .tag {
   margin: 0;
   padding: 0;
   min-height: 0;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  border-radius: 0;
+  border: none;
   background: transparent;
   box-shadow: none;
   cursor: pointer;
@@ -2202,6 +2215,45 @@ body.view-home .tag {
 .room.room--photo .sys-card.hotspot .sys-kicker,
 .room.room--photo .sys-card.hotspot .sys-desc,
 .room.room--photo .sys-card.hotspot .console-art { display: none; }
+
+/* Console-shaped silhouette stroke (live systems only) */
+.hotspot-sil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+.hotspot-sil path {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 0.12s ease, fill 0.12s ease, filter 0.12s ease;
+  filter: none;
+}
+.room.room--photo .sys-card.hotspot:hover .hotspot-sil path,
+.room.room--photo .sys-card.hotspot:focus-visible .hotspot-sil path,
+.room.room--photo .sys-card.hotspot.selected .hotspot-sil path {
+  stroke: var(--phosphor);
+  fill: rgba(184, 240, 20, 0.07);
+  filter:
+    drop-shadow(0 0 4px rgba(184, 240, 20, 0.85))
+    drop-shadow(0 0 10px rgba(184, 240, 20, 0.45));
+}
+/* Kill old rectangular hotspot chrome */
+.room.room--photo .sys-card.hotspot:hover,
+.room.room--photo .sys-card.hotspot:focus-visible,
+.room.room--photo .sys-card.hotspot.selected {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  filter: none;
+}
 
 .hotspot-label {
   position: absolute;
@@ -2232,42 +2284,30 @@ body.view-home .tag {
   border: 6px solid transparent;
   border-top-color: var(--phosphor);
 }
-
-.room.room--photo .sys-card.hotspot:hover,
-.room.room--photo .sys-card.hotspot:focus-visible,
-.room.room--photo .sys-card.hotspot.selected {
-  border-color: var(--phosphor);
-  background: rgba(184, 240, 20, 0.05);
-  box-shadow:
-    0 0 0 1px rgba(184, 240, 20, 0.55),
-    0 0 14px rgba(184, 240, 20, 0.4),
-    inset 0 0 10px rgba(184, 240, 20, 0.1);
-  filter: drop-shadow(0 0 4px rgba(184, 240, 20, 0.5));
-}
 .room.room--photo .sys-card.hotspot:hover .hotspot-label,
 .room.room--photo .sys-card.hotspot:focus-visible .hotspot-label,
 .room.room--photo .sys-card.hotspot.selected .hotspot-label {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* Coming-soon: visible in plate, non-interactive, no play outline / no tip */
 .room.room--photo .sys-card.hotspot.is-soon {
-  opacity: 0.72;
-  cursor: not-allowed;
-  filter: grayscale(0.35) brightness(0.9);
+  opacity: 1;
+  cursor: default;
+  filter: none;
+  pointer-events: none;
 }
 .room.room--photo .sys-card.hotspot.is-soon:hover,
 .room.room--photo .sys-card.hotspot.is-soon:focus-visible {
-  border-color: rgba(148, 163, 184, 0.7);
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35);
-  filter: grayscale(0.2) brightness(0.95);
-  background: rgba(148, 163, 184, 0.08);
+  border: none;
+  box-shadow: none;
+  filter: none;
+  background: transparent;
 }
+.room.room--photo .sys-card.hotspot.is-soon .hotspot-sil,
 .room.room--photo .sys-card.hotspot.is-soon .hotspot-label {
-  color: #cbd5e1;
-  border-color: #94a3b8;
-}
-.room.room--photo .sys-card.hotspot.is-soon .hotspot-label::after {
-  border-top-color: #94a3b8;
+  display: none !important;
 }
 
 .mock-actions {

@@ -80,7 +80,7 @@
       </nav>
       <div class="side-nav-status">
         <p class="side-tip"><span aria-hidden="true">💡</span> Load a ROM or pick a console to get started.</p>
-        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v12</span></p>
+        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v13</span></p>
       </div>
     </aside>
 
@@ -99,47 +99,51 @@
         />
 
         <div class="room-tv-hud" id="room-tv-screen" data-signal="off">
-          <div class="no-signal" id="no-signal">
-            <span class="no-signal-snow" aria-hidden="true"></span>
-            <span class="no-signal-scan" aria-hidden="true"></span>
-            <strong>NO SIGNAL</strong>
-            <span class="no-signal-sub" id="room-tv-sub">Load a ROM or pick a console</span>
+          <div class="room-tv-hud-plane">
+            <div class="no-signal" id="no-signal">
+              <span class="no-signal-snow" aria-hidden="true"></span>
+              <span class="no-signal-scan" aria-hidden="true"></span>
+              <strong>NO SIGNAL</strong>
+              <span class="no-signal-sub" id="room-tv-sub">Load a ROM or pick a console</span>
+            </div>
           </div>
         </div>
 
         <div class="hotspots" id="sys-grid" role="list">
-          <!-- Middle shelf: home consoles (calibrated to bedroom-scene.jpg) -->
-          <button type="button" class="sys-card hotspot" style="--x:4%;--y:59%;--w:11%;--h:11%" data-sys="nes" role="listitem" aria-label="NES — click to play" data-tip="NES — click to play">
+          <!-- Middle shelf: home consoles — SVG silhouettes for live systems only -->
+          <button type="button" class="sys-card hotspot" style="--x:3.5%;--y:57.5%;--w:13%;--h:13%" data-sys="nes" role="listitem" aria-label="NES — click to play" data-tip="NES — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true"><path d="M6,22 L114,16 L116,58 L8,64 Z"/></svg>
             <span class="hotspot-label">NES — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot" style="--x:19%;--y:58.5%;--w:9.5%;--h:11%" data-sys="snes" role="listitem" aria-label="SNES — click to play" data-tip="SNES — click to play">
+          <button type="button" class="sys-card hotspot" style="--x:17.5%;--y:56.5%;--w:12%;--h:13.5%" data-sys="snes" role="listitem" aria-label="SNES — click to play" data-tip="SNES — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true"><path d="M8,26 C30,12 90,12 112,24 L110,58 C88,70 30,70 10,60 Z"/></svg>
             <span class="hotspot-label">SNES — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot" style="--x:30.5%;--y:56.5%;--w:10%;--h:12.5%" data-sys="genesis" role="listitem" aria-label="Genesis — click to play" data-tip="Genesis — click to play">
+          <button type="button" class="sys-card hotspot" style="--x:29.5%;--y:55%;--w:12%;--h:14.5%" data-sys="genesis" role="listitem" aria-label="Genesis — click to play" data-tip="Genesis — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 120 80" preserveAspectRatio="none" aria-hidden="true"><path d="M18,34 C18,14 102,14 102,34 L108,62 C108,72 12,72 12,62 Z M40,18 C40,6 80,6 80,18"/></svg>
             <span class="hotspot-label">Genesis — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot is-soon" style="--x:41%;--y:54.5%;--w:12.5%;--h:14%" data-soon="n64" role="listitem" aria-label="N64 — coming soon" data-tip="N64 — coming soon" aria-disabled="true">
-            <span class="hotspot-label">N64 — coming soon</span>
+          <button type="button" class="sys-card hotspot is-soon" style="--x:42%;--y:54%;--w:13%;--h:15%" data-soon="n64" role="listitem" aria-label="N64 — coming soon" aria-disabled="true" tabindex="-1">
           </button>
-          <button type="button" class="sys-card hotspot is-soon" style="--x:54.5%;--y:56%;--w:13%;--h:12.5%" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" data-tip="PS1 — coming soon" aria-disabled="true">
-            <span class="hotspot-label">PS1 — coming soon</span>
+          <button type="button" class="sys-card hotspot is-soon" style="--x:55.5%;--y:55.5%;--w:13%;--h:13.5%" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" aria-disabled="true" tabindex="-1">
           </button>
-          <button type="button" class="sys-card hotspot is-soon" style="--x:68.5%;--y:54.5%;--w:12.5%;--h:13.5%" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" data-tip="Saturn — coming soon" aria-disabled="true">
-            <span class="hotspot-label">Saturn — coming soon</span>
+          <button type="button" class="sys-card hotspot is-soon" style="--x:69%;--y:54%;--w:13%;--h:14.5%" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" aria-disabled="true" tabindex="-1">
           </button>
 
-          <!-- Bottom shelf: handhelds -->
-          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:14%;--y:72%;--w:10.5%;--h:14%" data-sys="gb" role="listitem" aria-label="Game Boy — click to play" data-tip="Game Boy — click to play">
+          <!-- Bottom shelf: handhelds — GB / GBC / composited GBA / DS -->
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:12%;--y:71%;--w:8.5%;--h:16%" data-sys="gb" role="listitem" aria-label="Game Boy — click to play" data-tip="Game Boy — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 70 110" preserveAspectRatio="none" aria-hidden="true"><path d="M14,6 H56 Q64,6 64,16 V96 Q64,106 54,106 H16 Q6,106 6,96 V16 Q6,6 14,6 Z"/></svg>
             <span class="hotspot-label">Game Boy — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:29%;--y:73%;--w:10.5%;--h:13%" data-sys="gbc" role="listitem" aria-label="Game Boy Color — click to play" data-tip="GBC — click to play">
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:24%;--y:71.5%;--w:8%;--h:15.5%" data-sys="gbc" role="listitem" aria-label="Game Boy Color — click to play" data-tip="GBC — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 70 110" preserveAspectRatio="none" aria-hidden="true"><path d="M16,8 H54 Q62,8 62,18 V94 Q62,104 52,104 H18 Q8,104 8,94 V18 Q8,8 16,8 Z"/></svg>
             <span class="hotspot-label">GBC — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:46%;--y:71.5%;--w:12%;--h:14%" data-sys="gba" role="listitem" aria-label="Game Boy Advance — click to play" data-tip="GBA — click to play">
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:35.5%;--y:72%;--w:14%;--h:11%" data-sys="gba" role="listitem" aria-label="Game Boy Advance — click to play" data-tip="GBA — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 140 70" preserveAspectRatio="none" aria-hidden="true"><path d="M10,18 H130 Q138,18 138,28 V48 Q138,58 128,58 H12 Q4,58 4,48 V28 Q4,18 10,18 Z"/></svg>
             <span class="hotspot-label">GBA — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot hotspot--hand is-soon" style="--x:58.5%;--y:72%;--w:10%;--h:13%" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" data-tip="DS — coming soon" aria-disabled="true">
-            <span class="hotspot-label">DS — coming soon</span>
+          <button type="button" class="sys-card hotspot hotspot--hand is-soon" style="--x:50%;--y:70%;--w:12%;--h:15%" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" aria-disabled="true" tabindex="-1">
           </button>
         </div>
       </div>
