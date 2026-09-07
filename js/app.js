@@ -188,34 +188,45 @@
     wrap.hidden = false;
     root.innerHTML = "";
     games.forEach(function (g) {
-      const card = document.createElement("button");
-      card.type = "button";
+      const card = document.createElement("div");
       card.className = "recent";
       card.setAttribute("data-id", String(g.id));
-      const img = g.shot
-        ? "<img alt='' src='" + g.shot + "' />"
-        : "<div class='recent-ph'></div>";
-      card.innerHTML = img +
-        "<div class='recent-meta'><strong>" + (g.title || g.name) + "</strong><span>" +
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "recent-open";
+      open.setAttribute("aria-label", "Continue " + (g.title || g.name));
+      const thumb = g.shot
+        ? "<img alt=\"\" src=\"" + g.shot + "\" />"
+        : "<div class=\"recent-ph\" aria-hidden=\"true\"></div>";
+      open.innerHTML = thumb +
+        "<div class=\"recent-meta\"><strong>" + escapeHtml(g.title || g.name) + "</strong><span>" +
         (SYSTEMS[g.kind] ? SYSTEMS[g.kind].label : g.kind) + "</span></div>";
-      const x = document.createElement("button");
-      x.type = "button";
-      x.className = "recent-x";
-      x.textContent = "×";
-      x.title = "Remove";
-      x.onclick = function (e) {
-        e.stopPropagation();
-        GrokLibrary.remove(g.id).then(renderRecents);
-      };
-      card.appendChild(x);
-      card.onclick = function () {
+      open.onclick = function () {
         const bytes = g.bytes instanceof Uint8Array ? g.bytes : new Uint8Array(g.bytes);
         Promise.resolve(playRom({ bytes: bytes, name: g.name, kind: g.kind })).catch(function (err) {
           hideBoot();
           setHint(String(err.message || err));
         });
       };
+      const x = document.createElement("button");
+      x.type = "button";
+      x.className = "recent-x";
+      x.textContent = "×";
+      x.title = "Remove";
+      x.setAttribute("aria-label", "Remove " + (g.title || g.name) + " from Continue");
+      x.onclick = function (e) {
+        e.stopPropagation();
+        GrokLibrary.remove(g.id).then(renderRecents);
+      };
+      card.appendChild(open);
+      card.appendChild(x);
       root.appendChild(card);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s || "").replace(/[&<>"']/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
     });
   }
 
@@ -249,11 +260,15 @@
   function showHome() {
     view = "home";
     document.body.classList.add("view-home");
-    document.body.classList.remove("view-play", "sheet-open");
+    document.body.classList.remove("view-play", "sheet-open", "rom-loaded");
     $("home").hidden = false;
     $("play").hidden = true;
+    const sheet = $("btn-sheet");
+    if (sheet) sheet.setAttribute("aria-expanded", "false");
     if (running && !paused) togglePause();
     renderRecents().catch(function () {});
+    const focusCard = document.querySelector(".sys-card.selected") || document.querySelector(".sys-card");
+    if (focusCard) setTimeout(function () { focusCard.focus(); }, 0);
   }
 
   function showPlay() {
@@ -263,6 +278,8 @@
     $("home").hidden = true;
     $("play").hidden = false;
     if (window.GrokTouch) GrokTouch.sync();
+    const loadBtn = $("btn-load");
+    if (loadBtn && !currentRom.id) setTimeout(function () { loadBtn.focus(); }, 0);
   }
 
   function setPlayingUi(name, info) {
@@ -272,6 +289,7 @@
     paused = false;
     $("btn-pause").textContent = "Pause";
     $("run-dot").classList.add("on");
+    document.body.classList.add("rom-loaded");
     showPlay();
     updateHud();
   }
@@ -452,6 +470,16 @@
 
   window.addEventListener("keydown", function (e) {
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if (e.code === "Escape") {
+      if (!$("help-overlay").hidden) { $("help-overlay").hidden = true; e.preventDefault(); return; }
+      if (document.body.classList.contains("sheet-open")) {
+        document.body.classList.remove("sheet-open");
+        $("btn-sheet").setAttribute("aria-expanded", "false");
+        e.preventDefault();
+        return;
+      }
+      if (view === "play") { showHome(); e.preventDefault(); return; }
+    }
     if (e.code === "KeyP") { togglePause(); e.preventDefault(); return; }
     if (e.code === "KeyR" && (e.metaKey || e.ctrlKey)) return;
     if (e.code === "KeyR") { reset(); e.preventDefault(); return; }
@@ -621,6 +649,7 @@
     volume = Number(this.value) / 100;
     muted = volume === 0;
     $("btn-mute").textContent = muted ? "Unmute" : "Mute";
+    this.setAttribute("aria-valuenow", String(this.value));
     applyVolume();
   };
   $("help-close").onclick = function () { $("help-overlay").hidden = true; };
@@ -682,7 +711,8 @@
   };
 
   $("btn-sheet").onclick = function () {
-    document.body.classList.toggle("sheet-open");
+    const open = document.body.classList.toggle("sheet-open");
+    this.setAttribute("aria-expanded", open ? "true" : "false");
   };
 
   const zone = $("drop-zone");
@@ -762,13 +792,15 @@
         return;
       }
       setSystem(sys);
-      showPlay();
+      document.body.classList.remove("rom-loaded");
       $("rom-name").textContent = SYSTEMS[sys].label;
       $("mapper-info").textContent = "No ROM";
+      $("run-dot").classList.remove("on");
       setHint("Load a " + SYSTEMS[sys].label + " ROM, or drop one here");
       $("fps").textContent = "-- FPS";
       running = false;
       currentRom = { bytes: null, name: "", id: 0, kind: sys };
+      showPlay();
       if (sys !== "nes") {
         stopNes();
         GrokEjs.stop();

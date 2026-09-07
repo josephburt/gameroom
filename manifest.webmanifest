@@ -1,25 +1,42 @@
 {
   "name": "GROK NES",
   "short_name": "GROK NES",
-  "description": "Browser emulator for NES, Game Boy, Game Boy Color, and Super NES.",
+  "description": "Play NES, Game Boy, Game Boy Color, and Super NES in your browser. Load a ROM you own.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#07080c",
   "theme_color": "#07080c",
+  "lang": "en",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
