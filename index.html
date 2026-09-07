@@ -197,9 +197,13 @@
     <div class="home-actions">
       <button type="button" id="btn-demo" class="btn primary">Play NES demo</button>
       <button type="button" id="btn-load-home" class="btn">Load game</button>
+      <button type="button" id="btn-bookshelf-home" class="btn folder-api-only" hidden>Bookshelf folder</button>
       <button type="button" id="btn-drive-home" class="btn">Google Drive</button>
+      <button type="button" id="btn-bios-home" class="btn folder-api-only" hidden>BIOS folder</button>
       <button type="button" id="btn-install" class="btn" hidden>Install app</button>
     </div>
+    <p class="note home-note folder-fallback" hidden>This browser cannot attach local folders (needs Chromium). Use <strong>Load game</strong>, drag-and-drop, or Google Drive instead.</p>
+    <p class="note home-note" id="folder-status"></p>
     <p class="note home-note">Use ROMs you legally own. Files stay on this device (Drive picks download into this tab only). No commercial games or BIOS files are bundled. In-game: press <kbd>?</kbd> for hotkeys.</p>
   </section>
 
@@ -252,7 +256,9 @@
       <aside class="panel" id="side-panel" aria-label="Controls">
         <div class="btn-row">
           <button type="button" id="btn-load" class="btn primary">Load ROM</button>
+          <button type="button" id="btn-bookshelf" class="btn folder-api-only" hidden>Bookshelf</button>
           <button type="button" id="btn-drive" class="btn">Drive</button>
+          <button type="button" id="btn-bios" class="btn folder-api-only" hidden>BIOS</button>
           <button type="button" id="btn-reset" class="btn">Reset</button>
           <button type="button" id="btn-pause" class="btn">Pause</button>
           <button type="button" id="btn-full" class="btn">Fullscreen</button>
@@ -289,7 +295,7 @@
           <tr><td>Rewind</td><td>Hold Backspace</td></tr>
         </table>
         <p class="note" id="keys-note">Xbox / DualShock / generic pads work after you press a button on them.</p>
-        <p class="legal">Use ROMs you legally own. Drive files download into this tab only. No commercial games are bundled.</p>
+        <p class="legal">Use ROMs you legally own. Drive / folder files stay in this tab. No commercial games or BIOS bytes are bundled — attach your own BIOS folder only if you own those files.</p>
       </aside>
     </section>
     <button type="button" id="btn-sheet" class="sheet-toggle btn" aria-controls="side-panel" aria-expanded="false">Controls</button>
@@ -328,6 +334,42 @@
         <button type="button" id="drive-cancel" class="btn">Cancel</button>
       </div>
     </form>
+  </dialog>
+
+
+  <dialog id="bookshelf-dlg">
+    <div class="drive-form">
+      <h2>Bookshelf</h2>
+      <p>Attach a local folder of ROMs you own. The folder handle is remembered in this browser (Chromium). Click a game to load it through the normal GameRoom pipeline.</p>
+      <p class="note" id="bookshelf-status">No folder attached.</p>
+      <div class="btn-row">
+        <button type="button" id="bookshelf-pick" class="btn primary">Choose folder</button>
+        <button type="button" id="bookshelf-refresh" class="btn">Rescan</button>
+        <button type="button" id="bookshelf-clear" class="btn">Forget folder</button>
+      </div>
+      <label class="shelf-filter" for="bookshelf-filter">Filter
+        <input id="bookshelf-filter" type="search" placeholder="Search titles…" autocomplete="off" />
+      </label>
+      <ul id="bookshelf-list" class="zip-list bookshelf-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="bookshelf-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="bios-dlg">
+    <div class="drive-form">
+      <h2>BIOS / system files</h2>
+      <p>Optional. Point at a folder of BIOS files you legally own (for example <code>gba_bios.bin</code>). Nothing is uploaded or committed — files stay on your machine and are read only when a matching EmulatorJS core starts.</p>
+      <p class="note">Useful for GBA (mgba) and optional GB / GBC boot ROMs. Most games still boot without BIOS.</p>
+      <p class="note" id="bios-status">No BIOS folder attached.</p>
+      <ul id="bios-list" class="zip-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="bios-pick" class="btn primary">Choose BIOS folder</button>
+        <button type="button" id="bios-clear" class="btn">Forget folder</button>
+        <button type="button" id="bios-close" class="btn">Close</button>
+      </div>
+    </div>
   </dialog>
 
   <dialog id="zip-pick">
@@ -401,6 +443,7 @@
   <script src="js/ejs.js"></script>
   <script src="js/idb.js"></script>
   <script src="js/library.js"></script>
+  <script src="js/folders.js"></script>
   <script src="js/state.js"></script>
   <script src="js/rewind.js"></script>
   <script src="js/touch.js"></script>

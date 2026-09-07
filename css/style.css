@@ -1867,3 +1867,36 @@ body[data-system="genesis"] .face-y { background: #3d8b4a; }
   .no-signal-scan,
   .lamp-glow { animation: none; }
 }
+
+
+/* Local bookshelf / BIOS folder dialogs */
+.bookshelf-list {
+  max-height: min(48vh, 420px);
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.bookshelf-list li { margin: 0 0 6px; }
+.shelf-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.shelf-filter input {
+  appearance: none;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 8px 10px;
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+#folder-status:empty { display: none; }

@@ -3,7 +3,7 @@
   "use strict";
 
   const DB_NAME = "grok-nes";
-  const DB_VER = 3;
+  const DB_VER = 4;
   let dbp = null;
 
   function addStores(db) {
@@ -13,6 +13,15 @@
     if (!db.objectStoreNames.contains("library")) {
       db.createObjectStore("library", { keyPath: "id" });
     }
+    if (!db.objectStoreNames.contains("handles")) {
+      db.createObjectStore("handles", { keyPath: "id" });
+    }
+  }
+
+  function needsStores(db) {
+    return !db.objectStoreNames.contains("library") ||
+      !db.objectStoreNames.contains("states") ||
+      !db.objectStoreNames.contains("handles");
   }
 
   function openAt(ver) {
@@ -25,7 +34,7 @@
       req.onsuccess = function () {
         const db = req.result;
         db.onversionchange = function () { try { db.close(); } catch (e) {} };
-        if (!db.objectStoreNames.contains("library") || !db.objectStoreNames.contains("states")) {
+        if (needsStores(db)) {
           const next = db.version + 1;
           db.close();
           openAt(next).then(resolve, reject);

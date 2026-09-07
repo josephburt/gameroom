@@ -1,5 +1,5 @@
 /* Cache the static shell. ROM bytes and Drive traffic are never stored here. */
-const CACHE = "gameroom-v8";
+const CACHE = "gameroom-v10";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -14,6 +14,7 @@ const PRECACHE = [
   "/js/ejs.js",
   "/js/idb.js",
   "/js/library.js",
+  "/js/folders.js",
   "/js/state.js",
   "/js/rewind.js",
   "/js/touch.js",
