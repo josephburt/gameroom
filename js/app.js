@@ -310,7 +310,13 @@
     if (sheet) sheet.setAttribute("aria-expanded", "false");
     if (running && !paused) togglePause();
     renderRecents().catch(function () {});
-    const focusCard = document.querySelector(".sys-card.selected") || document.querySelector(".sys-card");
+    document.querySelectorAll(".side-nav-item").forEach(function (btn) {
+      const on = btn.getAttribute("data-nav") === "consoles";
+      btn.classList.toggle("is-active", on);
+      if (on) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+    const focusCard = document.querySelector(".sys-card.selected:not(.is-soon)") || document.querySelector(".sys-card:not(.is-soon)");
     if (focusCard) setTimeout(function () { focusCard.focus(); }, 0);
   }
 
@@ -835,9 +841,110 @@
   $("btn-drive-home").onclick = pickFromDrive;
   GrokDrive.warmup();
 
+  function setSideNav(active) {
+    document.querySelectorAll(".side-nav-item").forEach(function (btn) {
+      const on = btn.getAttribute("data-nav") === active;
+      btn.classList.toggle("is-active", on);
+      if (on) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+
+  function openAbout() {
+    setSideNav("about");
+    const dlg = $("about-dlg");
+    if (dlg && dlg.showModal) dlg.showModal();
+  }
+
+  function openCheats() {
+    setSideNav("cheats");
+    const dlg = $("cheats-dlg");
+    if (dlg && dlg.showModal) dlg.showModal();
+  }
+
+  function openSettingsHome() {
+    setSideNav("settings");
+    const crtHome = $("chk-crt-home");
+    const touchHome = $("chk-touch-home");
+    if (crtHome && $("chk-crt")) crtHome.checked = $("chk-crt").checked;
+    if (touchHome && $("chk-touch")) touchHome.checked = $("chk-touch").checked;
+    const dlg = $("settings-home-dlg");
+    if (dlg && dlg.showModal) dlg.showModal();
+  }
+
+  async function openSavedGames() {
+    setSideNav("saves");
+    if (currentRom.id && system === "nes") {
+      // Prefer existing save-state UI when a NES ROM is active
+      showPlay();
+      if ($("btn-states")) $("btn-states").click();
+      return;
+    }
+    await renderRecents();
+    const wrap = $("recents-wrap");
+    if (wrap && !wrap.hidden) {
+      wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const first = wrap.querySelector(".recent-open");
+      if (first) first.focus();
+      return;
+    }
+    // Lightweight stub when nothing is saved yet
+    setHint("No saved games yet — load a ROM, then use Save states from the play panel.");
+    if ($("state-dlg") && $("state-dlg").showModal) {
+      // Reuse state dialog shell as empty stub messaging via list
+      const list = $("state-list");
+      if (list) list.innerHTML = "<li class='note'>No save states in this browser yet. Load a ROM first, then open Save states from the emulator panel.</li>";
+      $("state-dlg").showModal();
+    }
+  }
+
+  function focusConsoles() {
+    setSideNav("consoles");
+    const room = document.querySelector(".room--photo");
+    if (room) room.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const focusCard = document.querySelector(".sys-card.selected:not(.is-soon)") || document.querySelector(".sys-card:not(.is-soon)");
+    if (focusCard) focusCard.focus();
+  }
+
+  document.querySelectorAll("[data-nav]").forEach(function (el) {
+    el.addEventListener("click", function () {
+      const nav = el.getAttribute("data-nav");
+      if (nav === "consoles") focusConsoles();
+      else if (nav === "saves") openSavedGames();
+      else if (nav === "cheats") openCheats();
+      else if (nav === "settings") openSettingsHome();
+      else if (nav === "about") openAbout();
+    });
+  });
+
+  if ($("about-close")) $("about-close").onclick = function () { $("about-dlg").close(); setSideNav("consoles"); };
+  if ($("cheats-close")) $("cheats-close").onclick = function () { $("cheats-dlg").close(); setSideNav("consoles"); };
+  if ($("settings-home-close")) {
+    $("settings-home-close").onclick = function () {
+      const crtHome = $("chk-crt-home");
+      const touchHome = $("chk-touch-home");
+      if (crtHome && $("chk-crt")) {
+        $("chk-crt").checked = crtHome.checked;
+        $("chk-crt").dispatchEvent(new Event("change"));
+      }
+      if (touchHome && $("chk-touch")) {
+        $("chk-touch").checked = touchHome.checked;
+        $("chk-touch").dispatchEvent(new Event("change"));
+      }
+      $("settings-home-dlg").close();
+      setSideNav("consoles");
+    };
+  }
+
+  if ($("btn-continue-home")) {
+    $("btn-continue-home").onclick = function () {
+      openSavedGames();
+    };
+  }
+
   document.querySelectorAll(".sys-card").forEach(function (card) {
     card.onclick = function () {
-      if (card.classList.contains("is-soon") || card.disabled) return;
+      if (card.classList.contains("is-soon") || card.disabled || card.getAttribute("aria-disabled") === "true") return;
       const sys = card.getAttribute("data-sys");
       if (!sys || !SYSTEMS[sys]) return;
       if (sys === system && currentRom.id) {

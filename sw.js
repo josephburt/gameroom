@@ -1,5 +1,5 @@
 /* Cache the static shell. ROM bytes and Drive traffic are never stored here. */
-const CACHE = "gameroom-v10";
+const CACHE = "gameroom-v11";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -27,7 +27,10 @@ const PRECACHE = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/icons/apple-touch-icon.png"
+  "/icons/apple-touch-icon.png",
+  "/assets/room/bedroom-scene.jpg",
+  "/assets/room/bedroom-scene-sm.jpg",
+  "/assets/mock/bedroom-north-star.jpg"
 ];
 
 self.addEventListener("install", function (event) {
