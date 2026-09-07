@@ -1,5 +1,5 @@
 /* Cache the static shell. ROM bytes and Drive traffic are never stored here. */
-const CACHE = "grok-nes-v3";
+const CACHE = "grok-nes-v4";
 const PRECACHE = [
   "/",
   "/index.html",
