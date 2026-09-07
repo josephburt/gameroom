@@ -1,19 +1,25 @@
-# GROK NES
+# Burt Labs GameRoom
 
-A browser emulator for NES, Game Boy, Game Boy Color, and Super NES. Play the built-in NES demo, drop in a ROM you legally own, or load one from Google Drive.
+A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, and Sega Genesis. Play the built-in NES demo, drop in a ROM you legally own, or load one from Google Drive.
 
-**Play it:** [https://emu.burtlabs.org](https://emu.burtlabs.org)
+**Play it:** [https://gameroom.burtlabs.org](https://gameroom.burtlabs.org)
 
-Installable as a PWA. Recently played games (Star Fox, whatever you drop in) stay in this browser so they come back in one click. Savestates and rewind stay here too. NES netplay is a WebRTC room code; GB / SNES use EmulatorJS netplay.
+> **Domain:** Primary host is **`gameroom.burtlabs.org`**. The older `emu.burtlabs.org` name may stay as an optional redirect later.
+
+Installable as a PWA. Recently played games stay in this browser so they come back in one click. Savestates and rewind stay here too. NES netplay is a WebRTC room code; other systems use EmulatorJS netplay where available.
 
 ## Systems
 
-| System | Engine | Extensions |
-|---|---|---|
-| NES | Built-in (mappers 0 / 1 / 2 / 3 / 4 / 7) | `.nes` |
-| Game Boy | EmulatorJS / gambatte | `.gb` |
-| Game Boy Color | EmulatorJS / gambatte | `.gbc` |
-| Super NES | EmulatorJS / snes9x | `.sfc` `.smc` |
+| System | Engine | Extensions | Status |
+|---|---|---|---|
+| NES | Built-in (mappers 0 / 1 / 2 / 3 / 4 / 7) | `.nes` | Phase 1 |
+| Super NES | EmulatorJS / snes9x | `.sfc` `.smc` | Phase 1 |
+| Game Boy | EmulatorJS / gambatte | `.gb` | Phase 1 |
+| Game Boy Color | EmulatorJS / gambatte | `.gbc` | Phase 1 |
+| Game Boy Advance | EmulatorJS / mgba (`gba`) | `.gba` | Phase 1 |
+| Sega Genesis / Mega Drive | EmulatorJS / genesis_plus_gx (`segaMD`) | `.md` `.gen` `.smd` | Phase 1 |
+| PS1 · N64 · DS · Saturn | — | — | Coming soon (placeholders) |
+| PS2 · GameCube · Wii · Xbox | — | — | Not planned for this phase |
 
 Zipped dumps (`.zip`) are unpacked in the browser.
 
@@ -24,8 +30,7 @@ Zipped dumps (`.zip`) are unpacked in the browser.
 | D-Pad | Arrow keys or WASD |
 | A | X or J |
 | B | Z or K |
-| SNES X / Y | V / C |
-| SNES L / R | Q / E |
+| SNES / Genesis extras | V / C · L/R = Q / E |
 | Start | Enter |
 | Select | Shift or Space |
 | Pause | P |
@@ -42,15 +47,15 @@ Xbox / DualShock / generic pads work after you press a button on them. Phones ge
 
 Slots 0–9 live in IndexedDB on this device (slot 0 is also written when you hide the tab). They do not upload anywhere.
 
-NES rewind is a few seconds of local snapshots. GB / SNES rewind uses the EmulatorJS / RetroArch option when the core supports it.
+NES rewind is a few seconds of local snapshots. EmulatorJS systems use the core / RetroArch rewind option when supported.
 
 ## Netplay
 
 **NES:** Load the same ROM on both machines, then **Netplay → Create room** and share the code. The ROM is never sent. Play is delay-based (a few frames), not rollback.
 
-**GB / SNES:** After the game starts, open the EmulatorJS settings menu and use its netplay. That stack talks to `netplay.emulatorjs.org`.
+**GB / SNES / GBA / Genesis:** After the game starts, open the EmulatorJS settings menu and use its netplay. That stack talks to `netplay.emulatorjs.org`.
 
-Symmetric NATs without TURN may fail. Treat GB / SNES netplay as best-effort.
+Symmetric NATs without TURN may fail. Treat EmulatorJS netplay as best-effort.
 
 ## Load from Google Drive
 
@@ -59,7 +64,7 @@ Drive is a picker in the browser. ROM bytes never leave your machine except the 
 1. Enable **Google Drive API** and **Google Picker API**.
 2. OAuth consent screen: External, add yourself as a test user.
 3. Create an OAuth **Web application** client ID. Authorized JavaScript origins:
-   - `https://emu.burtlabs.org`
+   - `https://gameroom.burtlabs.org`
    - `http://localhost:8765` (local testing)
 4. Create an API key.
 5. Copy the **project number** from Cloud Console home (that is App ID).
@@ -70,7 +75,7 @@ Until Google verifies the app, only test users (you) can use it without the unve
 
 ## Hosting
 
-Static site. GitHub Pages deploys from `main` via Actions. No server, database, or build step. Game Boy and SNES cores load from the EmulatorJS CDN.
+Static site. GitHub Pages deploys from `main` via Actions. No server, database, or build step. EmulatorJS cores load from the EmulatorJS CDN.
 
 Locally:
 
@@ -82,4 +87,4 @@ Then open `http://localhost:8765`.
 
 ## Legal
 
-The site is MIT-licensed. Game Boy and SNES support uses [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS). No commercial games or BIOS files are bundled. Only load ROMs you have the right to use.
+The site is MIT-licensed. Multi-system support uses [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS). No commercial games or BIOS files are bundled. Only load ROMs you have the right to use.

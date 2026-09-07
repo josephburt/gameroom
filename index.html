@@ -7,90 +7,152 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Play NES, Game Boy, Game Boy Color, and Super NES in your browser. Load a ROM you own — nothing leaves this device except optional Google Drive picks." />
+  <meta name="description" content="Burt Labs GameRoom — living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own — nothing leaves this device except optional Google Drive picks." />
   <meta name="author" content="Joseph Burt" />
-  <link rel="canonical" href="https://emu.burtlabs.org/" />
+  <link rel="canonical" href="https://gameroom.burtlabs.org/" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://emu.burtlabs.org/" />
-  <meta property="og:title" content="GROK NES — Browser NES · GB · GBC · SNES" />
-  <meta property="og:description" content="Play NES, Game Boy, Game Boy Color, and Super NES in your browser. Load a ROM you own." />
-  <meta property="og:image" content="https://emu.burtlabs.org/icons/icon-512.png" />
+  <meta property="og:url" content="https://gameroom.burtlabs.org/" />
+  <meta property="og:title" content="Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis" />
+  <meta property="og:description" content="Living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
+  <meta property="og:image" content="https://gameroom.burtlabs.org/icons/icon-512.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
-  <meta property="og:site_name" content="GROK NES" />
+  <meta property="og:site_name" content="Burt Labs GameRoom" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="GROK NES — Browser NES · GB · GBC · SNES" />
-  <meta name="twitter:description" content="Play NES, Game Boy, Game Boy Color, and Super NES in your browser. Load a ROM you own." />
-  <meta name="twitter:image" content="https://emu.burtlabs.org/icons/icon-512.png" />
-  <title>GROK NES — NES · GB · GBC · SNES</title>
+  <meta name="twitter:title" content="Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis" />
+  <meta name="twitter:description" content="Living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
+  <meta name="twitter:image" content="https://gameroom.burtlabs.org/icons/icon-512.png" />
+  <title>Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 </head>
 <body data-system="nes" class="view-home">
-  <a class="skip-link" href="#home">Skip to systems</a>
+  <a class="skip-link" href="#home">Skip to game room</a>
   <div class="scanline-overlay" aria-hidden="true"></div>
   <header class="topbar">
     <div class="brand">
-      <button type="button" id="btn-home" class="logo-btn" title="Back to systems" aria-label="Back to systems">
+      <button type="button" id="btn-home" class="logo-btn" title="Back to game room" aria-label="Back to game room">
         <span class="logo-mark" aria-hidden="true"></span>
       </button>
       <div class="brand-text">
-        <h1>GROK NES</h1>
-        <span class="tag">NES · GB · GBC · SNES</span>
+        <h1>GameRoom</h1>
+        <span class="tag">Burt Labs</span>
       </div>
     </div>
     <div class="status" aria-live="polite">
-      <span id="rom-name" class="status-rom">Pick a system</span>
+      <span id="rom-name" class="status-rom">Pick a console</span>
       <span class="status-sep" aria-hidden="true"></span>
       <span class="dot" id="run-dot" aria-hidden="true"></span>
       <span id="fps" class="status-fps">-- FPS</span>
     </div>
   </header>
 
-  <section id="home" class="home" aria-label="Systems">
+  <section id="home" class="home" aria-label="Game room">
     <div class="home-hero">
-      <p class="home-eyebrow">Browser multi-system emulator</p>
-      <p class="home-lead">Choose a system, then load a ROM you own — from disk, Google Drive, or Continue. Saves and screenshots stay in this browser.</p>
+      <p class="home-eyebrow">Burt Labs · late-90s entertainment center</p>
+      <p class="home-lead">Click a console on the shelf, then load a ROM you own — from disk, Google Drive, or Continue. The CRT stays on NO SIGNAL until something boots.</p>
     </div>
+
+    <div class="room" aria-label="Living room scene">
+      <div class="room-glow" aria-hidden="true"></div>
+      <div class="room-tv" id="room-tv">
+        <div class="room-tv-chassis">
+          <div class="room-tv-screen" id="room-tv-screen" data-signal="off">
+            <div class="no-signal" id="no-signal">
+              <span class="no-signal-snow" aria-hidden="true"></span>
+              <strong>NO SIGNAL</strong>
+              <span class="no-signal-sub" id="room-tv-sub">AV-1 · pick a console</span>
+            </div>
+          </div>
+          <div class="room-tv-ledge">
+            <span class="room-tv-brand">BURT LABS</span>
+            <span class="room-tv-led" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="entertainment-center">
+        <div class="shelf-label">Consoles</div>
+        <div class="sys-grid shelf-grid" id="sys-grid" role="list">
+          <button type="button" class="sys-card console-card" data-sys="nes" role="listitem" aria-label="NES — custom core, mappers 0 to 4 and 7">
+            <span class="console-art console-nes" aria-hidden="true"></span>
+            <span class="sys-kicker">8-bit</span>
+            <strong>NES</strong>
+            <span class="sys-desc">Custom core</span>
+          </button>
+          <button type="button" class="sys-card console-card" data-sys="snes" role="listitem" aria-label="Super NES — snes9x with Super FX and Mode 7">
+            <span class="console-art console-snes" aria-hidden="true"></span>
+            <span class="sys-kicker">16-bit</span>
+            <strong>SNES</strong>
+            <span class="sys-desc">snes9x</span>
+          </button>
+          <button type="button" class="sys-card console-card" data-sys="gb" role="listitem" aria-label="Game Boy — EmulatorJS gambatte">
+            <span class="console-art console-gb" aria-hidden="true"></span>
+            <span class="sys-kicker">Handheld</span>
+            <strong>Game Boy</strong>
+            <span class="sys-desc">gambatte</span>
+          </button>
+          <button type="button" class="sys-card console-card" data-sys="gbc" role="listitem" aria-label="Game Boy Color — EmulatorJS gambatte">
+            <span class="console-art console-gbc" aria-hidden="true"></span>
+            <span class="sys-kicker">Color</span>
+            <strong>GBC</strong>
+            <span class="sys-desc">gambatte</span>
+          </button>
+          <button type="button" class="sys-card console-card" data-sys="gba" role="listitem" aria-label="Game Boy Advance — EmulatorJS mgba">
+            <span class="console-art console-gba" aria-hidden="true"></span>
+            <span class="sys-kicker">Advance</span>
+            <strong>GBA</strong>
+            <span class="sys-desc">mgba</span>
+          </button>
+          <button type="button" class="sys-card console-card" data-sys="genesis" role="listitem" aria-label="Sega Genesis — EmulatorJS genesis_plus_gx">
+            <span class="console-art console-genesis" aria-hidden="true"></span>
+            <span class="sys-kicker">16-bit</span>
+            <strong>Genesis</strong>
+            <span class="sys-desc">segaMD</span>
+          </button>
+          <button type="button" class="sys-card console-card is-soon" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" disabled>
+            <span class="console-art console-soon" aria-hidden="true"></span>
+            <span class="sys-kicker">Coming soon</span>
+            <strong>PS1</strong>
+            <span class="sys-desc">Later phase</span>
+          </button>
+          <button type="button" class="sys-card console-card is-soon" data-soon="n64" role="listitem" aria-label="Nintendo 64 — coming soon" disabled>
+            <span class="console-art console-soon" aria-hidden="true"></span>
+            <span class="sys-kicker">Coming soon</span>
+            <strong>N64</strong>
+            <span class="sys-desc">Later phase</span>
+          </button>
+          <button type="button" class="sys-card console-card is-soon" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" disabled>
+            <span class="console-art console-soon" aria-hidden="true"></span>
+            <span class="sys-kicker">Coming soon</span>
+            <strong>DS</strong>
+            <span class="sys-desc">Later phase</span>
+          </button>
+          <button type="button" class="sys-card console-card is-soon" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" disabled>
+            <span class="console-art console-soon" aria-hidden="true"></span>
+            <span class="sys-kicker">Coming soon</span>
+            <strong>Saturn</strong>
+            <span class="sys-desc">Later phase</span>
+          </button>
+        </div>
+        <p class="shelf-footnote">PS2 · GameCube · Wii · Xbox stay on the back shelf for now.</p>
+      </div>
+    </div>
+
     <div id="recents-wrap" class="recents-wrap" hidden>
       <h2>Continue</h2>
       <div id="recents" class="recents"></div>
     </div>
-    <div class="sys-grid" id="sys-grid" role="list">
-      <button type="button" class="sys-card" data-sys="nes" role="listitem" aria-label="NES — custom core, mappers 0 to 4 and 7">
-        <span class="sys-pip" aria-hidden="true"></span>
-        <span class="sys-kicker">8-bit</span>
-        <strong>NES</strong>
-        <span class="sys-desc">Custom core · mappers 0–4, 7</span>
-      </button>
-      <button type="button" class="sys-card" data-sys="gb" role="listitem" aria-label="Game Boy — EmulatorJS gambatte">
-        <span class="sys-pip" aria-hidden="true"></span>
-        <span class="sys-kicker">Handheld</span>
-        <strong>Game Boy</strong>
-        <span class="sys-desc">EmulatorJS · gambatte</span>
-      </button>
-      <button type="button" class="sys-card" data-sys="gbc" role="listitem" aria-label="Game Boy Color — EmulatorJS gambatte">
-        <span class="sys-pip" aria-hidden="true"></span>
-        <span class="sys-kicker">Color</span>
-        <strong>Game Boy Color</strong>
-        <span class="sys-desc">EmulatorJS · gambatte</span>
-      </button>
-      <button type="button" class="sys-card" data-sys="snes" role="listitem" aria-label="Super NES — snes9x with Super FX and Mode 7">
-        <span class="sys-pip" aria-hidden="true"></span>
-        <span class="sys-kicker">16-bit</span>
-        <strong>Super NES</strong>
-        <span class="sys-desc">snes9x · Super FX · Mode 7</span>
-      </button>
-    </div>
+
     <div class="home-actions">
       <button type="button" id="btn-demo" class="btn primary">Play NES demo</button>
-      <button type="button" id="btn-load-home" class="btn">Load ROM</button>
+      <button type="button" id="btn-load-home" class="btn">Load game</button>
       <button type="button" id="btn-drive-home" class="btn">Google Drive</button>
       <button type="button" id="btn-install" class="btn" hidden>Install app</button>
     </div>
-    <p class="note home-note">Use ROMs you legally own. Files stay on this device (Drive picks download into this tab only). No commercial games are bundled. In-game: press <kbd>?</kbd> for hotkeys.</p>
+    <p class="note home-note">Use ROMs you legally own. Files stay on this device (Drive picks download into this tab only). No commercial games or BIOS files are bundled. In-game: press <kbd>?</kbd> for hotkeys.</p>
   </section>
 
   <main id="play" hidden aria-label="Emulator">
@@ -162,7 +224,7 @@
         <label class="vol" for="vol">Volume
           <input type="range" id="vol" min="0" max="100" value="70" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" />
         </label>
-        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.sfc,.SFC,.smc,.SMC,.zip,.ZIP" hidden />
+        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.zip,.ZIP" hidden />
 
         <div class="meter">
           <span id="meter-label">Mapper</span>
@@ -186,8 +248,8 @@
   </main>
 
   <footer>
-    <span class="foot-systems">NES · Game Boy · Game Boy Color · Super NES</span>
-    <a class="foot-host" href="https://emu.burtlabs.org">emu.burtlabs.org</a>
+    <span class="foot-systems">Burt Labs GameRoom · NES · SNES · GB · GBA · Genesis</span>
+    <a class="foot-host" href="https://gameroom.burtlabs.org">gameroom.burtlabs.org</a>
   </footer>
 
   <dialog id="drive-setup">
@@ -195,7 +257,7 @@
       <h2>Google Drive setup</h2>
       <p>One-time Cloud project. Credentials stay in this browser. Authorized JavaScript origins must include:</p>
       <ul>
-        <li><code>https://emu.burtlabs.org</code></li>
+        <li><code>https://gameroom.burtlabs.org</code></li>
         <li><code>http://localhost:8765</code></li>
       </ul>
       <ol>
@@ -262,7 +324,7 @@
   <dialog id="netplay-dlg">
     <div class="drive-form">
       <h2>Netplay</h2>
-      <p id="netplay-help">NES uses a room code over WebRTC. Both of you load the same ROM — the file is never sent. GB / SNES use EmulatorJS netplay from the in-core settings menu.</p>
+      <p id="netplay-help">NES uses a room code over WebRTC. Both of you load the same ROM — the file is never sent. Other systems use EmulatorJS netplay from the in-core settings menu.</p>
       <p id="netplay-status" class="note">Idle</p>
       <label>Room code
         <input id="netplay-code" type="text" maxlength="8" autocomplete="off" placeholder="ABC123" />

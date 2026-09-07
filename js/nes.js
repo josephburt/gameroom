@@ -123,7 +123,7 @@
   NES.prototype.deserialize = function (bytes) {
     if (!this.cart) throw new Error("No ROM loaded");
     const r = new g.NesReader(bytes);
-    if (r.u32() !== STATE_MAGIC) throw new Error("Not a GROK NES save state");
+    if (r.u32() !== STATE_MAGIC) throw new Error("Not a GameRoom NES save state");
     const ver = r.u8();
     if (ver !== STATE_VER) throw new Error("Save state version " + ver + " is not supported");
     const mapperId = r.u8();

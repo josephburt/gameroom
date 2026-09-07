@@ -6,9 +6,13 @@
   const ROM_EXT = {
     nes: 1, unf: 1, unif: 1, fds: 1,
     gb: 1, gbc: 1, sgb: 1, dmg: 1,
-    sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1
+    sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1,
+    gba: 1, agb: 1, mb: 1,
+    md: 1, gen: 1, smd: 1, bin: 1
   };
   const SNES_EXT = { sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1 };
+  const GBA_EXT = { gba: 1, agb: 1, mb: 1 };
+  const GEN_EXT = { md: 1, gen: 1, smd: 1 };
 
   function extOf(name) {
     const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
@@ -65,6 +69,42 @@
     return Math.max(lo, hi) >= 8;
   }
 
+  /* GBA: fixed 0x96 at 0xB2; optional Nintendo logo fingerprint at 0x04. */
+  function isGba(bytes) {
+    if (!bytes || bytes.length < 0xc0) return false;
+    if (bytes[0xb2] !== 0x96) return false;
+    /* Logo starts 0x04; first bytes commonly 0x24 0xff 0xae 0x51 */
+    if (bytes[0x04] === 0x24 && bytes[0x05] === 0xff && bytes[0x06] === 0xae) return true;
+    /* Still accept if fixed byte + ASCII game code region looks sane */
+    let ascii = 0;
+    for (let i = 0xa0; i < 0xac; i++) {
+      const c = bytes[i];
+      if (c >= 0x20 && c <= 0x7e) ascii++;
+    }
+    return ascii >= 4;
+  }
+
+  function asciiAt(bytes, off, len) {
+    let s = "";
+    for (let i = 0; i < len && off + i < bytes.length; i++) {
+      const c = bytes[off + i];
+      if (c < 0x20 || c > 0x7e) return s;
+      s += String.fromCharCode(c);
+    }
+    return s;
+  }
+
+  /* Genesis / Mega Drive: "SEGA" at 0x100 (binary) or SMD interleaved header. */
+  function isGenesis(bytes) {
+    if (!bytes || bytes.length < 0x200) return false;
+    if (asciiAt(bytes, 0x100, 4) === "SEGA") return true;
+    if (asciiAt(bytes, 0x100, 15).indexOf("SEGA") !== -1) return true;
+    /* Some dumps put TMSS string nearby */
+    if (bytes.length >= 0x110 && asciiAt(bytes, 0x100, 16).indexOf("MEGA DRIVE") !== -1) return true;
+    if (bytes.length >= 0x110 && asciiAt(bytes, 0x100, 16).indexOf("GENESIS") !== -1) return true;
+    return false;
+  }
+
   function skipJunk(bytes) {
     if (bytes.length > 528 && isNes(bytes.subarray(512))) return bytes.subarray(512);
     if (bytes.length > 512 + 0x150 && isGb(bytes.subarray(512))) return bytes.subarray(512);
@@ -84,13 +124,18 @@
   function detect(bytes, name) {
     bytes = skipJunk(bytes);
     if (isNes(bytes)) return "nes";
+    if (isGba(bytes)) return "gba";
     if (isGb(bytes)) return bytes[0x143] === 0xc0 || bytes[0x143] === 0x80 ? "gbc" : "gb";
     if (isSnes(bytes)) return "snes";
+    if (isGenesis(bytes)) return "genesis";
     const ext = extOf(name);
     if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "nes";
     if (ext === "gbc") return "gbc";
     if (ext === "gb" || ext === "sgb" || ext === "dmg") return "gb";
+    if (GBA_EXT[ext]) return "gba";
     if (SNES_EXT[ext]) return "snes";
+    if (GEN_EXT[ext]) return "genesis";
+    /* .bin is ambiguous — only claim Genesis if header matched above */
     return null;
   }
 
@@ -153,6 +198,8 @@
   function systemLabel(kind, bytes) {
     if (kind === "nes") return "NES";
     if (kind === "snes") return "Super NES";
+    if (kind === "gba") return "Game Boy Advance";
+    if (kind === "genesis") return "Sega Genesis";
     if (kind === "gb" || kind === "gbc") return gbLabel(bytes);
     return kind || "ROM";
   }
@@ -184,6 +231,14 @@
       const t = asciiTitle(bytes, 0x134, 16);
       if (t.length >= 2) return t;
     }
+    if (kind === "gba" || isGba(bytes)) {
+      const t = asciiTitle(bytes, 0xa0, 12);
+      if (t.length >= 2) return t;
+    }
+    if (kind === "genesis" || isGenesis(bytes)) {
+      const t = asciiTitle(bytes, 0x150, 48);
+      if (t.length >= 3) return t;
+    }
     return String(fileName || "ROM")
       .replace(/\.[^.]+$/, "")
       .replace(/\s*\([^)]*\)/g, "")
@@ -198,6 +253,8 @@
     isNes: isNes,
     isGb: isGb,
     isSnes: isSnes,
+    isGba: isGba,
+    isGenesis: isGenesis,
     gbLabel: gbLabel,
     systemLabel: systemLabel,
     prettyName: prettyName,

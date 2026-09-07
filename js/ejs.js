@@ -1,4 +1,4 @@
-/* Game Boy / GBC / SNES via EmulatorJS. */
+/* Game Boy / GBC / SNES / GBA / Genesis via EmulatorJS. */
 (function (g) {
   "use strict";
 
@@ -16,8 +16,23 @@
       if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return name;
       return (name || "game") + ".sfc";
     }
+    if (core === "gba") {
+      if (ext === "gba" || ext === "agb" || ext === "mb") return name;
+      return (name || "game") + ".gba";
+    }
+    if (core === "segaMD") {
+      if (ext === "md" || ext === "gen" || ext === "smd" || ext === "bin") return name;
+      return (name || "game") + ".md";
+    }
     if (ext === "gb" || ext === "gbc" || ext === "dmg" || ext === "sgb") return name;
     return (name || "game") + ".gb";
+  }
+
+  function controlSchemeFor(core) {
+    if (core === "snes") return "snes";
+    if (core === "gba") return "gba";
+    if (core === "segaMD") return "segaMD";
+    return "gb";
   }
 
   function defaultControls() {
@@ -52,7 +67,7 @@
     g.EJS_startOnLoaded = true;
     g.EJS_color = opts.color || "#ff3b4e";
     g.EJS_backgroundColor = "#000000";
-    g.EJS_controlScheme = core === "snes" ? "snes" : "gb";
+    g.EJS_controlScheme = controlSchemeFor(core);
     g.EJS_gameID = opts.gameId || 1;
     g.EJS_volume = opts.muted ? 0 : (opts.volume == null ? 0.7 : opts.volume);
     g.EJS_askBeforeExit = false;

@@ -20,7 +20,7 @@
       const req = indexedDB.open(DB_NAME, ver);
       req.onupgradeneeded = function () { addStores(req.result); };
       req.onblocked = function () {
-        reject(new Error("Close other GROK NES tabs to update storage"));
+        reject(new Error("Close other GameRoom tabs to update storage"));
       };
       req.onsuccess = function () {
         const db = req.result;
