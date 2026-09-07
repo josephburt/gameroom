@@ -29,6 +29,8 @@ jobs:
           cp index.html LICENSE README.md CNAME manifest.webmanifest sw.js _site/
           touch _site/.nojekyll
           cp -r css js icons _site/
+          # Bedroom / room media (present after PR #7+)
+          if [ -d assets ]; then cp -r assets _site/; fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
