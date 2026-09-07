@@ -793,9 +793,7 @@ dialog::backdrop { background: rgba(4, 6, 10, 0.72); backdrop-filter: blur(4px);
 .face-x { right: 8px; top: 0; }
 .face-y { left: 0; top: 44px; }
 .touch-mid { display: flex; gap: 8px; align-self: center; pointer-events: none; }
-body[data-system="nes"] [data-snes-only],
-body[data-system="gb"] [data-snes-only],
-body[data-system="gbc"] [data-snes-only] { display: none !important; }
+/* Extra face/shoulder visibility is driven by js/touch.js via [data-systems] + [hidden]. */
 
 .sheet-toggle { display: none; }
 .sheet-toggle {
@@ -1127,6 +1125,11 @@ body[data-system="snes"] .face-b { background: #d4a017; }
 body[data-system="snes"] .face-x { background: #3b6ea5; }
 body[data-system="snes"] .face-y { background: #3d8b4a; }
 body[data-system="snes"] .tbtn.shoulder { background: rgba(255, 255, 255, 0.22); }
+body[data-system="gba"] .tbtn.shoulder { background: rgba(255, 255, 255, 0.22); }
+body[data-system="genesis"] .face-a { background: #c0392b; }
+body[data-system="genesis"] .face-b { background: #d4a017; }
+body[data-system="genesis"] .face-x { background: #3b6ea5; }
+body[data-system="genesis"] .face-y { background: #3d8b4a; }
 
 @media (prefers-reduced-motion: reduce) {
   .logo-mark { animation: none; opacity: 1; }
