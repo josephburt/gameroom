@@ -135,15 +135,37 @@
     return window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
   }
 
+  function systemsFor(el) {
+    const raw = el.getAttribute("data-systems") || "";
+    return raw.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function syncFaceLabels(sys) {
+    const faceX = overlay.querySelector(".face-x");
+    const faceY = overlay.querySelector(".face-y");
+    // EJS defaultControls: KeyV=BUTTON_3 (SNES X / Genesis C), KeyC=BUTTON_4 (Y).
+    if (faceX) {
+      const lab = sys === "genesis" ? "C" : "X";
+      faceX.textContent = lab;
+      faceX.setAttribute("aria-label", lab);
+    }
+    if (faceY) {
+      faceY.textContent = "Y";
+      faceY.setAttribute("aria-label", "Y");
+    }
+  }
+
   function syncLayout() {
     if (!overlay) return;
     const sys = getSystem();
     overlay.setAttribute("data-system", sys);
     const show = overlay.toggleForced || isCoarse();
     overlay.hidden = !show;
-    overlay.querySelectorAll("[data-snes-only]").forEach(function (el) {
-      el.hidden = sys !== "snes";
+    overlay.querySelectorAll("[data-systems]").forEach(function (el) {
+      const list = systemsFor(el);
+      el.hidden = list.indexOf(sys) === -1;
     });
+    syncFaceLabels(sys);
   }
 
   function setForced(on) {

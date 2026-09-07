@@ -222,11 +222,11 @@
           </div>
           <div id="touch-overlay" hidden data-system="nes" aria-label="On-screen controls">
             <div class="touch-shoulders">
-              <button type="button" class="tbtn shoulder" data-key="KeyQ" data-snes-only aria-label="L shoulder">L</button>
+              <button type="button" class="tbtn shoulder" data-key="KeyQ" data-systems="snes,gba" aria-label="L shoulder">L</button>
               <button type="button" class="tbtn" data-act="rewind" aria-label="Rewind">RW</button>
               <button type="button" class="tbtn" data-act="turbo" aria-label="Turbo">FF</button>
               <button type="button" class="tbtn" data-act="pause" aria-label="Pause">❚❚</button>
-              <button type="button" class="tbtn shoulder" data-key="KeyE" data-snes-only aria-label="R shoulder">R</button>
+              <button type="button" class="tbtn shoulder" data-key="KeyE" data-systems="snes,gba" aria-label="R shoulder">R</button>
             </div>
             <div class="touch-main">
               <div id="touch-dpad" class="dpad" role="group" aria-label="D-pad">
@@ -237,8 +237,8 @@
                 <button type="button" class="tbtn pill" data-key="Enter" aria-label="Start">Start</button>
               </div>
               <div class="face" role="group" aria-label="Face buttons">
-                <button type="button" class="tbtn face-y" data-key="KeyC" data-snes-only aria-label="Y">Y</button>
-                <button type="button" class="tbtn face-x" data-key="KeyV" data-snes-only aria-label="X">X</button>
+                <button type="button" class="tbtn face-y" data-key="KeyC" data-systems="snes,genesis" aria-label="Y">Y</button>
+                <button type="button" class="tbtn face-x" data-key="KeyV" data-systems="snes,genesis" aria-label="X">X</button>
                 <button type="button" class="tbtn face-b" data-key="KeyZ" aria-label="B">B</button>
                 <button type="button" class="tbtn face-a" data-key="KeyX" aria-label="A">A</button>
               </div>
@@ -364,7 +364,7 @@
         <tr><td>F8</td><td>Screenshot</td></tr>
         <tr><td>?</td><td>This sheet</td></tr>
       </table>
-      <p class="note">A = X / J · B = Z / K · SNES X/Y = V/C · L/R = Q/E</p>
+      <p class="note">A = X / J · B = Z / K · SNES X/Y = V/C · L/R = Q/E · Genesis C = V</p>
       <button type="button" id="help-close" class="btn primary">Got it</button>
     </div>
   </div>
