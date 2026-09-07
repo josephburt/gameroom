@@ -59,21 +59,26 @@
   }
 
   function bindHold(el, downFn, upFn) {
+    let ptr = null;
     function start(e) {
       e.preventDefault();
+      ptr = e.pointerId;
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      el.classList.add("is-down");
       downFn(e);
       try { if (navigator.vibrate) navigator.vibrate(8); } catch (err) {}
     }
     function end(e) {
+      if (ptr !== null && e.pointerId !== ptr && e.type !== "pointercancel") return;
+      ptr = null;
+      el.classList.remove("is-down");
       e.preventDefault();
       upFn(e);
     }
     el.addEventListener("pointerdown", start);
     el.addEventListener("pointerup", end);
     el.addEventListener("pointercancel", end);
-    el.addEventListener("pointerleave", function (e) {
-      if (e.buttons) end(e);
-    });
+    el.addEventListener("lostpointercapture", end);
   }
 
   function init(opts) {
