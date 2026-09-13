@@ -2066,11 +2066,12 @@ body.view-home .tag {
 
 .room-tv-hud {
   position: absolute;
-  /* Cover the full CRT glass of bedroom-scene.jpg */
-  left: 23.2%;
-  top: 9.8%;
-  width: 33.2%;
-  height: 31%;
+  /* Slightly overscan the CRT glass of bedroom-scene.jpg so the dark idle
+     screen fully covers it (the overhang sits on the black bezel). */
+  left: 22.6%;
+  top: 9%;
+  width: 34.8%;
+  height: 32.6%;
   z-index: 2;
   pointer-events: none;
   perspective: 1100px;
@@ -2079,7 +2080,7 @@ body.view-home .tag {
 .room-tv-hud-plane {
   position: absolute;
   inset: 0;
-  border-radius: 7% / 10%;
+  border-radius: 5% / 8%;
   overflow: hidden;
   transform: rotateX(1.5deg);
   transform-origin: 50% 50%;
@@ -2089,7 +2090,7 @@ body.view-home .tag {
   /* Clean, dark idle CRT — opaque so the baked static / chrome never shows,
      with a faint glass reflection so it reads as a screen, not a hole. */
   background:
-    linear-gradient(150deg, rgba(255, 255, 255, 0.055) 0%, transparent 20%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.05) 0%, transparent 18%),
     radial-gradient(ellipse 82% 72% at 50% 44%, #0c1017 0%, #070a11 56%, #04060a 100%);
 }
 .hotspots {
