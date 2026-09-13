@@ -146,10 +146,6 @@
 
   function setHint(text) { $("hint").textContent = text; }
 
-  /* The room TV is a static prop in the map — no on-screen signal/static. */
-  function updateRoomTv() {}
-
-
   function updateHud() {
     const el = $("play-hud");
     if (!el) return;
@@ -287,7 +283,6 @@
       c.classList.toggle("selected", c.getAttribute("data-sys") === next);
     });
     if (window.GrokTouch) GrokTouch.sync();
-    updateRoomTv(next);
     updateDeck(next);
   }
 

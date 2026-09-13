@@ -2064,35 +2064,6 @@ body.view-home .tag {
 .room.room--photo .room-carpet,
 .room.room--photo .room-floor { display: none !important; }
 
-.room-tv-hud {
-  position: absolute;
-  /* Slightly overscan the CRT glass of bedroom-scene.jpg so the dark idle
-     screen fully covers it (the overhang sits on the black bezel). */
-  left: 22.6%;
-  top: 9%;
-  width: 34.8%;
-  height: 32.6%;
-  z-index: 2;
-  pointer-events: none;
-  perspective: 1100px;
-  perspective-origin: 50% 40%;
-}
-.room-tv-hud-plane {
-  position: absolute;
-  inset: 0;
-  border-radius: 5% / 8%;
-  overflow: hidden;
-  transform: rotateX(1.5deg);
-  transform-origin: 50% 50%;
-  box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.85),
-    inset 0 0 3px rgba(180, 220, 255, 0.18);
-  /* Clean, dark idle CRT — opaque so the baked static / chrome never shows,
-     with a faint glass reflection so it reads as a screen, not a hole. */
-  background:
-    linear-gradient(150deg, rgba(255, 255, 255, 0.05) 0%, transparent 18%),
-    radial-gradient(ellipse 82% 72% at 50% 44%, #0c1017 0%, #070a11 56%, #04060a 100%);
-}
 .hotspots {
   position: absolute;
   inset: 0;
@@ -2299,7 +2270,6 @@ body.view-home .tag {
   .hotspots {
     min-width: 720px;
   }
-  .room-tv-hud { min-width: 0; }
   .top-links { display: none; }
 }
 
