@@ -146,18 +146,8 @@
 
   function setHint(text) { $("hint").textContent = text; }
 
-  function updateRoomTv(sys) {
-    const sub = $("room-tv-sub");
-    const screen = $("room-tv-screen");
-    if (!sub) return;
-    const spec = SYSTEMS[sys];
-    if (spec) {
-      sub.textContent = "AV-1 · " + spec.label + " selected — load a ROM";
-    } else {
-      sub.textContent = "AV-1 · pick a console";
-    }
-    if (screen) screen.setAttribute("data-signal", spec ? "standby" : "off");
-  }
+  /* The room TV is a static prop in the map — no on-screen signal/static. */
+  function updateRoomTv() {}
 
 
   function updateHud() {
