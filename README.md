@@ -83,6 +83,10 @@ Click **Drive** on the site and paste those three values. They are stored in thi
 
 Until Google verifies the app, only test users (you) can use it without the unverified-app warning.
 
+## Desktop-first
+
+GameRoom is built for a full desktop web browser. The room "map" up top is a visual representation of where you're going; picking a console scrolls you down to the loader + emulator, where you load a ROM, BIOS, or other files. It still runs in mobile and non-desktop browsers, but the layout, controls, and emulator are tuned for desktop — on smaller/touch devices a banner points this out.
+
 ## Hosting
 
 Static site. GitHub Pages deploys from `main` via Actions. No server, database, or build step. EmulatorJS cores load from the EmulatorJS CDN.
