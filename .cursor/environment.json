@@ -1,0 +1,17 @@
+{
+  "name": "Burt Labs GameRoom",
+  "install": "python3 --version",
+  "terminals": [
+    {
+      "name": "web",
+      "command": "python3 -m http.server 8765",
+      "description": "Serves the static GameRoom site at http://localhost:8765 (same command the README documents)."
+    }
+  ],
+  "ports": [
+    {
+      "name": "web",
+      "port": 8765
+    }
+  ]
+}
