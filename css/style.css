@@ -2091,27 +2091,29 @@ body.view-home .tag {
 
 .room-tv-hud {
   position: absolute;
-  /* Sit inside CRT glass plane of cleaned bedroom-scene.jpg */
+  /* Cover the full CRT glass of bedroom-scene.jpg */
   left: 23.2%;
-  top: 12.4%;
-  width: 21.8%;
-  height: 26.2%;
+  top: 9.8%;
+  width: 33.2%;
+  height: 31%;
   z-index: 2;
   pointer-events: none;
-  perspective: 900px;
+  perspective: 1100px;
   perspective-origin: 50% 40%;
 }
 .room-tv-hud-plane {
   position: absolute;
   inset: 0;
-  border-radius: 10% / 14%;
+  border-radius: 7% / 10%;
   overflow: hidden;
-  transform: rotateY(-7deg) rotateX(5deg) skewX(-1.5deg) scale(1.02, 1.04);
-  transform-origin: 50% 55%;
+  transform: rotateX(1.5deg);
+  transform-origin: 50% 50%;
   box-shadow:
-    inset 0 0 18px rgba(0, 0, 0, 0.55),
-    inset 0 0 2px rgba(180, 220, 255, 0.25);
-  background: rgba(6, 10, 18, 0.12);
+    inset 0 0 60px rgba(0, 0, 0, 0.7),
+    inset 0 0 3px rgba(180, 220, 255, 0.28);
+  /* Opaque phosphor screen so the underlying baked static / chrome never shows */
+  background:
+    radial-gradient(ellipse 72% 64% at 48% 42%, #12294d 0%, #0a1a34 52%, #06101f 100%);
 }
 .room-tv-hud .no-signal {
   position: absolute;

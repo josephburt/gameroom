@@ -1,5 +1,5 @@
 /* Cache the static shell. ROM bytes and Drive traffic are never stored here. */
-const CACHE = "gameroom-v14";
+const CACHE = "gameroom-v15";
 const PRECACHE = [
   "/",
   "/index.html",
