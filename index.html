@@ -31,6 +31,10 @@
 <body data-system="nes" class="view-home">
   <a class="skip-link" href="#home">Skip to game room</a>
   <div class="scanline-overlay" aria-hidden="true"></div>
+  <div id="desktop-banner" class="desktop-banner" role="note" hidden>
+    <span class="desktop-banner-txt"><strong>Best on desktop.</strong> GameRoom runs in this browser, but the room map, controls, and emulator are tuned for a full desktop web browser.</span>
+    <button type="button" id="desktop-banner-x" class="desktop-banner-x" aria-label="Dismiss">×</button>
+  </div>
   <header class="topbar">
     <div class="brand">
       <button type="button" id="btn-home" class="logo-btn" title="Back to game room" aria-label="Back to game room">
@@ -80,7 +84,7 @@
       </nav>
       <div class="side-nav-status">
         <p class="side-tip"><span aria-hidden="true">💡</span> Load a ROM or pick a console to get started.</p>
-        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v15</span></p>
+        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v20</span></p>
       </div>
     </aside>
 
@@ -97,17 +101,6 @@
           decoding="async"
           fetchpriority="high"
         />
-
-        <div class="room-tv-hud" id="room-tv-screen" data-signal="off">
-          <div class="room-tv-hud-plane">
-            <div class="no-signal" id="no-signal">
-              <span class="no-signal-snow" aria-hidden="true"></span>
-              <span class="no-signal-scan" aria-hidden="true"></span>
-              <strong>NO SIGNAL</strong>
-              <span class="no-signal-sub" id="room-tv-sub">Load a ROM or pick a console</span>
-            </div>
-          </div>
-        </div>
 
         <div class="hotspots" id="sys-grid" role="list">
           <!-- Middle shelf: home consoles — SVG silhouettes for live systems only -->
@@ -179,7 +172,15 @@
     </div>
   </section>
 
-  <main id="play" hidden aria-label="Emulator">
+  <main id="play" hidden aria-label="Load and play">
+    <div class="deck-head">
+      <div class="deck-head-main">
+        <span class="deck-eyebrow" id="deck-eyebrow">Selected console</span>
+        <h2 class="deck-title" id="deck-title">Super NES</h2>
+        <p class="deck-sub" id="deck-sub">Load a ROM to start.</p>
+      </div>
+      <button type="button" class="btn deck-up" id="btn-deck-up" aria-label="Back to the room map">↑ Room map</button>
+    </div>
     <section class="stage" id="drop-zone">
       <div class="bezel">
         <div class="crt-wrap" id="crt-wrap" data-system="nes">

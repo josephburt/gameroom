@@ -146,20 +146,6 @@
 
   function setHint(text) { $("hint").textContent = text; }
 
-  function updateRoomTv(sys) {
-    const sub = $("room-tv-sub");
-    const screen = $("room-tv-screen");
-    if (!sub) return;
-    const spec = SYSTEMS[sys];
-    if (spec) {
-      sub.textContent = "AV-1 · " + spec.label + " selected — load a ROM";
-    } else {
-      sub.textContent = "AV-1 · pick a console";
-    }
-    if (screen) screen.setAttribute("data-signal", spec ? "standby" : "off");
-  }
-
-
   function updateHud() {
     const el = $("play-hud");
     if (!el) return;
@@ -297,18 +283,44 @@
       c.classList.toggle("selected", c.getAttribute("data-sys") === next);
     });
     if (window.GrokTouch) GrokTouch.sync();
-    updateRoomTv(next);
+    updateDeck(next);
   }
 
+  function scrollToTop() {
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); }
+    catch (e) { window.scrollTo(0, 0); }
+  }
+
+  const DECK_PROMPTS = {
+    nes: "Load a .nes ROM — or drop one anywhere on this panel.",
+    snes: "Load a .sfc / .smc ROM. Super FX games (e.g. Star Fox) fetch the core on first play.",
+    gb: "Load a .gb ROM — or drop one here.",
+    gbc: "Load a .gbc / .gb ROM — or drop one here.",
+    gba: "Load a .gba ROM. BIOS is optional — attach a BIOS folder if you own gba_bios.bin.",
+    genesis: "Load a .md / .gen / .smd ROM — the core fetches on first play."
+  };
+
+  function updateDeck(sys, opts) {
+    opts = opts || {};
+    const spec = SYSTEMS[sys] || SYSTEMS.nes;
+    const title = $("deck-title");
+    const sub = $("deck-sub");
+    const eyebrow = $("deck-eyebrow");
+    if (title) title.textContent = spec.label;
+    if (eyebrow) eyebrow.textContent = opts.playing ? "Now playing" : "Selected console";
+    if (sub) {
+      sub.textContent = opts.playing
+        ? "Playing “" + (opts.name || spec.label) + "”."
+        : (DECK_PROMPTS[sys] || "Load a ROM to start.");
+    }
+  }
+
+  /* The room photo stays as a persistent map up top; "home" just returns to it. */
   function showHome() {
     view = "home";
-    document.body.classList.add("view-home");
-    document.body.classList.remove("view-play", "sheet-open", "rom-loaded");
-    $("home").hidden = false;
-    $("play").hidden = true;
+    document.body.classList.remove("sheet-open");
     const sheet = $("btn-sheet");
     if (sheet) sheet.setAttribute("aria-expanded", "false");
-    if (running && !paused) togglePause();
     renderRecents().catch(function () {});
     document.querySelectorAll(".side-nav-item").forEach(function (btn) {
       const on = btn.getAttribute("data-nav") === "consoles";
@@ -316,19 +328,22 @@
       if (on) btn.setAttribute("aria-current", "page");
       else btn.removeAttribute("aria-current");
     });
+    scrollToTop();
     const focusCard = document.querySelector(".sys-card.selected:not(.is-soon)") || document.querySelector(".sys-card:not(.is-soon)");
-    if (focusCard) setTimeout(function () { focusCard.focus(); }, 0);
+    if (focusCard) setTimeout(function () { try { focusCard.focus({ preventScroll: true }); } catch (e) {} }, 360);
   }
 
+  /* The loader + emulator live below the map; "play" reveals and scrolls to them. */
   function showPlay() {
     view = "play";
-    document.body.classList.add("view-play");
-    document.body.classList.remove("view-home");
-    $("home").hidden = true;
+    document.body.classList.add("deck-open");
     $("play").hidden = false;
     if (window.GrokTouch) GrokTouch.sync();
-    const loadBtn = $("btn-load");
-    if (loadBtn && !currentRom.id) setTimeout(function () { loadBtn.focus(); }, 0);
+    const deck = $("play");
+    if (deck) {
+      try { deck.scrollIntoView({ behavior: "smooth", block: "start" }); }
+      catch (e) { deck.scrollIntoView(); }
+    }
   }
 
   function setPlayingUi(name, info) {
@@ -339,6 +354,7 @@
     $("btn-pause").textContent = "Pause";
     $("run-dot").classList.add("on");
     document.body.classList.add("rom-loaded");
+    updateDeck(system, { playing: true, name: name });
     showPlay();
     updateHud();
   }
@@ -538,20 +554,23 @@
       }
       if (view === "play") { showHome(); e.preventDefault(); return; }
     }
-    if (e.code === "KeyP") { togglePause(); e.preventDefault(); return; }
+    if (e.key === "?" || (e.code === "Slash" && e.shiftKey)) { e.preventDefault(); toggleHelp(); return; }
+    /* In-game hotkeys only apply once a ROM is loaded, so Tab/arrows/etc. still
+       navigate and scroll the room map normally when you're just browsing. */
+    const playing = !!currentRom.id;
+    if (playing && e.code === "KeyP") { togglePause(); e.preventDefault(); return; }
     if (e.code === "KeyR" && (e.metaKey || e.ctrlKey)) return;
-    if (e.code === "KeyR") { reset(); e.preventDefault(); return; }
-    if (e.code === "Backspace" || e.code === "F1") {
+    if (playing && e.code === "KeyR") { reset(); e.preventDefault(); return; }
+    if (playing && (e.code === "Backspace" || e.code === "F1")) {
       e.preventDefault();
       setRewind(true);
       return;
     }
-    if (e.code === "F5") { e.preventDefault(); saveSlot(0); return; }
-    if (e.code === "F7") { e.preventDefault(); loadSlot(0); return; }
-    if (e.code === "F8") { e.preventDefault(); screenshot(); return; }
-    if (e.key === "?" || (e.code === "Slash" && e.shiftKey)) { e.preventDefault(); toggleHelp(); return; }
-    if (e.code === "Tab") { e.preventDefault(); setTurbo(true); return; }
-    if (system !== "nes") return;
+    if (playing && e.code === "F5") { e.preventDefault(); saveSlot(0); return; }
+    if (playing && e.code === "F7") { e.preventDefault(); loadSlot(0); return; }
+    if (playing && e.code === "F8") { e.preventDefault(); screenshot(); return; }
+    if (playing && e.code === "Tab") { e.preventDefault(); setTurbo(true); return; }
+    if (system !== "nes" || !running) return;
     const b = KEYMAP[e.code];
     if (b !== undefined) {
       nes.ctrl1.setButton(b, true);
@@ -974,6 +993,7 @@
   });
 
   $("btn-home").onclick = showHome;
+  if ($("btn-deck-up")) $("btn-deck-up").onclick = showHome;
   $("btn-demo").onclick = function () {
     loadBytes(b64ToBytes(DEMO_ROM_B64), "DEMO ROM");
   };
@@ -1229,6 +1249,24 @@
       $("btn-install").hidden = true;
     });
   };
+
+  /* —— "Best on desktop" banner for small / coarse-pointer browsers —— */
+  (function initDesktopBanner() {
+    const banner = $("desktop-banner");
+    if (!banner) return;
+    let dismissed = false;
+    try { dismissed = localStorage.getItem("gr-desktop-banner") === "off"; } catch (e) {}
+    const small = window.matchMedia && (
+      window.matchMedia("(max-width: 900px)").matches ||
+      window.matchMedia("(pointer: coarse)").matches
+    );
+    if (small && !dismissed) banner.hidden = false;
+    const x = $("desktop-banner-x");
+    if (x) x.onclick = function () {
+      banner.hidden = true;
+      try { localStorage.setItem("gr-desktop-banner", "off"); } catch (e) {}
+    };
+  })();
 
   setSystem("nes");
   showHome();

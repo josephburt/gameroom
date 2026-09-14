@@ -830,32 +830,7 @@ dialog::backdrop { background: rgba(4, 6, 10, 0.72); backdrop-filter: blur(4px);
   .sys-card strong { font-size: 17px; }
   main { padding: 10px 12px 88px; }
   .home { padding: 12px 16px 36px; }
-  .sheet-toggle {
-    display: block;
-    position: fixed;
-    right: max(16px, var(--safe-r));
-    bottom: calc(16px + var(--safe-b));
-    z-index: 30;
-    min-height: 48px;
-    padding: 10px 16px;
-  }
-  body.view-play.sheet-open .sheet-toggle {
-    border-color: var(--accent);
-    background: #252a3c;
-  }
-  body.view-play .panel {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    z-index: 28;
-    border-radius: 16px 16px 0 0;
-    max-height: 70vh;
-    overflow: auto;
-    transform: translateY(110%);
-    transition: transform 0.2s ease;
-    padding-bottom: calc(18px + var(--safe-b));
-    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.45);
-  }
-  body.view-play.sheet-open .panel { transform: translateY(0); }
+  /* Controls panel stacks inline below the emulator on small screens. */
   .rotate-hint {
     display: block;
     text-align: center;
@@ -868,7 +843,7 @@ dialog::backdrop { background: rgba(4, 6, 10, 0.72); backdrop-filter: blur(4px);
     border-radius: 999px;
     background: rgba(0, 0, 0, 0.22);
   }
-  body.view-play.rom-loaded .rotate-hint { display: none; }
+  body.rom-loaded .rotate-hint { display: none; }
 }
 
 @media (max-width: 900px) and (orientation: landscape) {
@@ -1139,7 +1114,7 @@ body[data-system="genesis"] .face-y { background: #3d8b4a; }
   .recent { transition: none; }
   .sys-card:hover { transform: none; }
   .skip-link { transition: none; }
-  body.view-play .panel { transition: none; }
+  .panel { transition: none; }
   .scanline-overlay { opacity: 0.22; }
   .crt-wrap.crt-on .crt-glass {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 20%, transparent 80%, rgba(0, 0, 0, 0.14));
@@ -2089,107 +2064,6 @@ body.view-home .tag {
 .room.room--photo .room-carpet,
 .room.room--photo .room-floor { display: none !important; }
 
-.room-tv-hud {
-  position: absolute;
-  /* Cover the full CRT glass of bedroom-scene.jpg */
-  left: 23.2%;
-  top: 9.8%;
-  width: 33.2%;
-  height: 31%;
-  z-index: 2;
-  pointer-events: none;
-  perspective: 1100px;
-  perspective-origin: 50% 40%;
-}
-.room-tv-hud-plane {
-  position: absolute;
-  inset: 0;
-  border-radius: 7% / 10%;
-  overflow: hidden;
-  transform: rotateX(1.5deg);
-  transform-origin: 50% 50%;
-  box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.7),
-    inset 0 0 3px rgba(180, 220, 255, 0.28);
-  /* Opaque phosphor screen so the underlying baked static / chrome never shows */
-  background:
-    radial-gradient(ellipse 72% 64% at 48% 42%, #12294d 0%, #0a1a34 52%, #06101f 100%);
-}
-.room-tv-hud .no-signal {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 6px;
-  padding: 8px;
-  text-align: center;
-  background: rgba(8, 12, 20, 0.12);
-}
-.room-tv-hud .no-signal strong {
-  position: relative;
-  z-index: 1;
-  font-size: clamp(9px, 1.35vw, 15px);
-  letter-spacing: 0.16em;
-  padding: 5px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background: rgba(10, 12, 16, 0.78);
-  border-radius: 3px;
-  transform: rotateX(2deg);
-}
-.room-tv-hud .no-signal-sub {
-  position: absolute;
-  left: 7%;
-  right: 7%;
-  bottom: 9%;
-  z-index: 1;
-  font-size: clamp(7px, 0.85vw, 10px);
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.66);
-  color: #e8ecf4;
-  letter-spacing: 0.02em;
-}
-.room-tv-hud .no-signal-snow {
-  position: absolute;
-  inset: -12%;
-  z-index: 0;
-  opacity: 0.42;
-  background:
-    repeating-linear-gradient(0deg, #9ab 0 1px, #234 1px 2px),
-    repeating-linear-gradient(90deg, #bcd 0 1px, #123 1px 3px);
-  animation: snow-shift 0.35s steps(2) infinite;
-  mix-blend-mode: screen;
-}
-.room-tv-hud .no-signal-scan {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    transparent 100%
-  );
-  background-size: 100% 28%;
-  animation: scan-drift 2.8s linear infinite;
-  opacity: 0.45;
-  pointer-events: none;
-}
-@keyframes snow-shift {
-  0% { transform: translate(0, 0); }
-  50% { transform: translate(-1%, 1%); }
-  100% { transform: translate(1%, -1%); }
-}
-@keyframes scan-drift {
-  0% { background-position: 0 -40%; }
-  100% { background-position: 0 140%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .room-tv-hud .no-signal-snow,
-  .room-tv-hud .no-signal-scan { animation: none; }
-}
-
 .hotspots {
   position: absolute;
   inset: 0;
@@ -2396,7 +2270,6 @@ body.view-home .tag {
   .hotspots {
     min-width: 720px;
   }
-  .room-tv-hud { min-width: 0; }
   .top-links { display: none; }
 }
 
@@ -2405,4 +2278,115 @@ body.view-home .tag {
   body.view-home .brand-text h1 { font-size: 14px; }
   .room.room--photo .room-photo,
   .hotspots { min-width: 640px; }
+}
+
+/* ——— "Best on desktop" banner (shown on small / coarse-pointer devices) ——— */
+.desktop-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px max(14px, var(--safe-l)) 10px max(14px, var(--safe-r));
+  background: linear-gradient(180deg, rgba(184, 240, 20, 0.12), rgba(184, 240, 20, 0.05));
+  border-bottom: 1px solid var(--glass-border, rgba(184, 240, 20, 0.35));
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.desktop-banner[hidden] { display: none; }
+.desktop-banner-txt { flex: 1; min-width: 0; }
+.desktop-banner-txt strong { color: var(--phosphor); letter-spacing: 0.02em; }
+.desktop-banner-x {
+  appearance: none;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.desktop-banner-x:hover { border-color: var(--phosphor); }
+
+/* ——— Deck: the loader + emulator that lives BELOW the room map ——— */
+/* The room photo up top is a visual map; selecting a console reveals this. */
+#play {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 4px 20px 44px;
+  padding-left: max(20px, var(--safe-l));
+  padding-right: max(20px, var(--safe-r));
+  scroll-margin-top: 12px;
+}
+#play[hidden] { display: none !important; }
+
+.deck-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 8px 0 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border, var(--line));
+  background: var(--glass, rgba(12, 16, 22, 0.72));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+.deck-head::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: linear-gradient(90deg, transparent, var(--card-accent, var(--accent)), transparent);
+  opacity: 0.7;
+}
+.deck-head-main { min-width: 0; }
+.deck-eyebrow {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--phosphor);
+  margin-bottom: 4px;
+}
+.deck-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+.deck-sub {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 60ch;
+}
+.deck-up {
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* Per-system accent on the deck header, mirroring the console pips. */
+body[data-system="nes"] .deck-head { --card-accent: var(--sys-nes); }
+body[data-system="snes"] .deck-head { --card-accent: var(--sys-snes); }
+body[data-system="gb"] .deck-head { --card-accent: var(--sys-gb); }
+body[data-system="gbc"] .deck-head { --card-accent: var(--sys-gbc); }
+body[data-system="gba"] .deck-head { --card-accent: var(--sys-gba); }
+body[data-system="genesis"] .deck-head { --card-accent: var(--sys-genesis); }
+
+/* Obsolete mobile bottom-sheet toggle — panel now stacks inline. */
+.sheet-toggle { display: none !important; }
+
+@media (max-width: 900px) {
+  #play { padding: 4px 14px 40px; }
+  .deck-head { flex-direction: column; align-items: stretch; gap: 10px; }
+  .deck-up { align-self: flex-start; }
 }
