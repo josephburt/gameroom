@@ -1,6 +1,6 @@
 # Burt Labs GameRoom
 
-A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, Sega Genesis, and PlayStation. Play the built-in NES demo, drop in a ROM you legally own, attach a local **Bookshelf** folder (Chromium), or load one from Google Drive.
+A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, Sega Genesis, PlayStation, Nintendo 64, Sega Saturn, and Nintendo DS. Play the built-in NES demo, drop in a ROM you legally own, attach a local **Bookshelf** folder (Chromium), or load one from Google Drive.
 
 **Play it:** [https://gameroom.burtlabs.org](https://gameroom.burtlabs.org)
 
@@ -18,9 +18,11 @@ Installable as a PWA. Recently played games stay in this browser so they come ba
 | Game Boy Color | EmulatorJS / gambatte | `.gbc` | Phase 1 |
 | Game Boy Advance | EmulatorJS / mgba (`gba`) | `.gba` | Phase 1 |
 | Sega Genesis / Mega Drive | EmulatorJS / genesis_plus_gx (`segaMD`) | `.md` `.gen` `.smd` | Phase 1 |
-| PlayStation | EmulatorJS / Beetle PSX (`psx`) | `.pbp`, or `.zip` with `.cue`+tracks (BIOS required) | Phase 1 |
-| N64 · DS · Saturn | — | — | Coming soon (placeholders) |
-| PS2 · GameCube · Wii · Xbox | — | — | Not planned for this phase |
+| PlayStation | EmulatorJS / Beetle PSX (`psx`) | `.pbp`, or `.zip` with `.cue`+tracks (BIOS required; CHD not supported) | Phase 1 |
+| Nintendo 64 | EmulatorJS / mupen64plus_next (`n64`) | `.z64` `.n64` `.v64` | Phase 1 |
+| Sega Saturn | EmulatorJS / Yabause (`segaSaturn`) | `.iso` `.cue` (BIOS required) | Phase 1 |
+| Nintendo DS | EmulatorJS / melonDS (`nds`) | `.nds` (BIOS pack required) | Phase 1 |
+| Dreamcast · PS2 · GameCube · Wii · Xbox | — | — | Not planned for this phase |
 
 Zipped dumps (`.zip`) are unpacked in the browser.
 
@@ -64,7 +66,7 @@ Symmetric NATs without TURN may fail. Treat EmulatorJS netplay as best-effort.
 On Chrome, Edge, and other Chromium browsers, GameRoom can attach local folders with the File System Access API:
 
 1. **Bookshelf folder** — pick a directory of ROMs you own (`.nes` `.gb` `.gbc` `.gba` `.sfc` `.smc` `.md` `.gen` `.smd` `.zip`, plus a few aliases). GameRoom scans a few levels deep, lists games in a Bookshelf dialog, and loads the chosen file through the same pipeline as disk / Drive / zip picks.
-2. **BIOS folder** (optional for GBA/GB/GBC; **required for PlayStation**) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, `gbc_bios.bin`, or a PS1 dump like `scph5501.bin`. When several PS1 BIOS files are present, GameRoom prefers `scph5501.bin` and marks it in the BIOS dialog. When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded. For multi-track PS1 dumps, load a `.zip` that contains the `.cue` and its `.bin` tracks (or a single-file `.pbp`); a lone `.cue` cannot reach companion files.
+2. **BIOS folder** (optional for GBA/GB/GBC/N64; **required for PlayStation, Saturn, and DS**) — pick a folder of legally obtained system files. Known filenames are recognized both as loose files and **inside zips** in that folder. PlayStation prefers `scph5501.bin`; Saturn prefers `saturn_bios.bin`; DS needs `bios7.bin`, `bios9.bin`, and `firmware.bin` (packed automatically). When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded. For multi-track PS1 dumps, load a `.zip` that contains the `.cue` and its `.bin` tracks (or a single-file `.pbp`); browser **CHD** dumps are not supported yet.
 
 Folder handles are stored in IndexedDB on this device. On the next visit Chromium may ask you to re-allow access (`queryPermission` / `requestPermission`). Safari and Firefox hide these controls and keep the normal file input + Google Drive paths.
 

@@ -4,3 +4,4 @@ tools/
 *.png
 !icons/*.png
 demo.nes
+.smoke/

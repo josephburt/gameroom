@@ -14,14 +14,18 @@
     gba: 1, agb: 1, mb: 1,
     md: 1, gen: 1, smd: 1,
     cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1,
+    n64: 1, z64: 1, v64: 1,
+    nds: 1,
     zip: 1
   };
-  /* Lowercase basename → kind. Multiple PS1 names share kind; preference is in biosUrlFor. */
+  /* Lowercase basename → kind. Multiple names may share a kind. */
   const BIOS_NAMES = {
     "gba_bios.bin": "gba",
     "gb_bios.bin": "gb",
     "gbc_bios.bin": "gbc",
     "sgb_bios.bin": "sgb",
+    "dmg_boot.bin": "gb",
+    "cgb_boot.bin": "gbc",
     "scph5501.bin": "ps1",
     "scph7001.bin": "ps1",
     "scph101.bin": "ps1",
@@ -32,9 +36,18 @@
     "scph7002.bin": "ps1",
     "scph1000.bin": "ps1",
     "scph1002.bin": "ps1",
-    "psxonpsp660.bin": "ps1"
+    "scph3000.bin": "ps1",
+    "scph5000.bin": "ps1",
+    "scph7003.bin": "ps1",
+    "scph7502.bin": "ps1",
+    "psxonpsp660.bin": "ps1",
+    "saturn_bios.bin": "saturn",
+    "sega_101.bin": "saturn",
+    "mpr-17933.bin": "saturn",
+    "bios7.bin": "nds",
+    "bios9.bin": "nds",
+    "firmware.bin": "nds"
   };
-  /* Preferred order when several PS1 BIOS files are present (US first). */
   const PS1_BIOS_PREF = [
     "scph5501.bin",
     "scph7001.bin",
@@ -46,8 +59,14 @@
     "scph7002.bin",
     "scph1000.bin",
     "scph1002.bin",
+    "scph3000.bin",
+    "scph5000.bin",
+    "scph7003.bin",
+    "scph7502.bin",
     "psxonpsp660.bin"
   ];
+  const SATURN_BIOS_PREF = ["saturn_bios.bin", "sega_101.bin", "mpr-17933.bin"];
+  const NDS_BIOS_KEYS = ["bios7.bin", "bios9.bin", "firmware.bin"];
 
   let romHandle = null;
   let biosHandle = null;
@@ -153,6 +172,44 @@
     return out;
   }
 
+  function pushBiosEntry(all, entry) {
+    if (!entry || !entry.key || !entry.kind) return;
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].key === entry.key && all[i].kind === entry.kind &&
+          all[i].name === entry.name && all[i].source === entry.source) return;
+    }
+    all.push(entry);
+  }
+
+  async function considerBiosZip(fileHandle, zipName, all) {
+    if (typeof g.JSZip === "undefined") return;
+    try {
+      const file = await fileHandle.getFile();
+      /* Cap: skip huge packs to avoid blowing memory while scanning. */
+      if (file.size > 80 * 1024 * 1024) return;
+      const zip = await g.JSZip.loadAsync(await file.arrayBuffer());
+      const paths = Object.keys(zip.files);
+      for (let i = 0; i < paths.length; i++) {
+        const path = paths[i];
+        const zf = zip.files[path];
+        if (!zf || zf.dir) continue;
+        const name = baseName(path);
+        const key = String(name).toLowerCase();
+        const kind = BIOS_NAMES[key];
+        if (!kind) continue;
+        pushBiosEntry(all, {
+          name: name,
+          key: key,
+          kind: kind,
+          handle: null,
+          zipHandle: fileHandle,
+          zipPath: path,
+          source: zipName + "/" + path
+        });
+      }
+    } catch (e) {}
+  }
+
   async function walkBios(dir, depth, all) {
     if (!dir || depth > 2) return;
     const iter = dir.values ? dir.values() : dir.entries();
@@ -170,16 +227,34 @@
       }
       if (handle.kind !== "file") continue;
       const key = String(name).toLowerCase();
+      if (extOf(name) === "zip") {
+        await considerBiosZip(handle, name, all);
+        continue;
+      }
       const kind = BIOS_NAMES[key];
       if (!kind) continue;
-      all.push({ name: name, handle: handle, key: key, kind: kind });
+      pushBiosEntry(all, {
+        name: name,
+        handle: handle,
+        key: key,
+        kind: kind,
+        zipHandle: null,
+        zipPath: "",
+        source: name
+      });
     }
   }
 
   function biosRank(kind, key) {
-    if (kind !== "ps1") return 0;
-    const i = PS1_BIOS_PREF.indexOf(key);
-    return i === -1 ? 100 : i;
+    if (kind === "ps1") {
+      const i = PS1_BIOS_PREF.indexOf(key);
+      return i === -1 ? 100 : i;
+    }
+    if (kind === "saturn") {
+      const i = SATURN_BIOS_PREF.indexOf(key);
+      return i === -1 ? 100 : i;
+    }
+    return 0;
   }
 
   function biosPrefer(kind, nextKey, prevKey) {
@@ -239,7 +314,6 @@
       romHandle = null;
       return null;
     }
-    /* Keep the handle even if permission is not granted yet — requestPermission needs a user gesture. */
     romHandle = row.handle;
     const ok = await ensurePermission(row.handle, { queryOnly: true });
     return {
@@ -311,13 +385,19 @@
   async function listBiosFiles() {
     const cache = await biosCacheFull();
     const preferred = cache.preferred;
+    const byKey = {};
+    for (let i = 0; i < cache.all.length; i++) byKey[cache.all[i].key] = true;
+    const ndsReady = NDS_BIOS_KEYS.every(function (k) { return !!byKey[k]; });
     return cache.all.map(function (e) {
       const pick = preferred[e.kind];
+      let isPref = !!(pick && pick.key === e.key);
+      if (e.kind === "nds") isPref = ndsReady;
       return {
         kind: e.kind,
         name: e.name,
         key: e.key,
-        preferred: !!(pick && pick.key === e.key)
+        preferred: isPref,
+        source: e.source || e.name
       };
     });
   }
@@ -327,18 +407,60 @@
     if (kind === "gbc") return map.gbc || map.gb || null;
     if (kind === "gb") return map.gb || map.gbc || null;
     if (kind === "ps1") return map.ps1 || null;
+    if (kind === "saturn") return map.saturn || null;
     return map[kind] || null;
   }
 
-  /* Prefer GBA BIOS for gba; GB/GBC for those; PS1 required for EmulatorJS psx. */
+  async function readBiosEntryBytes(entry) {
+    if (!entry) throw new Error("Missing BIOS entry");
+    if (entry.zipHandle && entry.zipPath) {
+      if (typeof g.JSZip === "undefined") throw new Error("Zip support failed to load");
+      const file = await entry.zipHandle.getFile();
+      const zip = await g.JSZip.loadAsync(await file.arrayBuffer());
+      const zf = zip.file(entry.zipPath);
+      if (!zf) throw new Error("BIOS missing inside zip: " + entry.zipPath);
+      return zf.async("uint8array");
+    }
+    if (!entry.handle) throw new Error("Missing BIOS file handle");
+    const file = await entry.handle.getFile();
+    return new Uint8Array(await file.arrayBuffer());
+  }
+
+  async function biosPack(keys, outName, kindLabel) {
+    const cache = await biosCacheFull();
+    const byKey = {};
+    for (let i = 0; i < cache.all.length; i++) {
+      byKey[cache.all[i].key] = cache.all[i];
+    }
+    const missing = [];
+    for (let i = 0; i < keys.length; i++) {
+      if (!byKey[keys[i]]) missing.push(keys[i]);
+    }
+    if (missing.length) return null;
+    if (typeof g.JSZip === "undefined") throw new Error("Zip support failed to load");
+    const zip = new g.JSZip();
+    for (let i = 0; i < keys.length; i++) {
+      const bytes = await readBiosEntryBytes(byKey[keys[i]]);
+      zip.file(keys[i], bytes);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    biosObjectUrl = URL.createObjectURL(blob);
+    return { url: biosObjectUrl, name: outName, key: keys.join("+"), detail: kindLabel };
+  }
+
+  /* Prefer GBA/GB/GBC/PS1 single files; NDS packs bios7+bios9+firmware into one zip blob. */
   async function biosFor(kind) {
     revokeBiosUrl();
+    if (kind === "nds") {
+      return biosPack(NDS_BIOS_KEYS, "nds-bios.zip", "NDS BIOS pack");
+    }
     const map = await biosMap();
     const entry = entryForKind(map, kind);
-    if (!entry || !entry.handle) return null;
-    const file = await entry.handle.getFile();
-    biosObjectUrl = URL.createObjectURL(file);
-    return { url: biosObjectUrl, name: entry.name, key: entry.key || "" };
+    if (!entry) return null;
+    const bytes = await readBiosEntryBytes(entry);
+    const blob = new Blob([bytes], { type: "application/octet-stream" });
+    biosObjectUrl = URL.createObjectURL(blob);
+    return { url: biosObjectUrl, name: entry.name, key: entry.key || "", source: entry.source || entry.name };
   }
 
   async function biosUrlFor(kind) {
@@ -363,8 +485,8 @@
     biosUrlFor: biosUrlFor,
     revokeBiosUrl: revokeBiosUrl,
     ensurePermission: ensurePermission,
-    /* Test helpers (pure preference ranking). */
     _biosPrefer: biosPrefer,
-    _preferredFromAll: preferredFromAll
+    _preferredFromAll: preferredFromAll,
+    _NDS_BIOS_KEYS: NDS_BIOS_KEYS
   };
 })(typeof window !== "undefined" ? window : globalThis);
