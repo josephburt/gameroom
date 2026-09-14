@@ -179,10 +179,13 @@
         ? canvas
         : document.querySelector("#ejs-player canvas, #ejs-player .ejs_canvas");
       if (!src) return "";
+      /* Preserve the source aspect ratio so thumbnails aren't squished. */
+      const sw = src.width || src.videoWidth || 256;
+      const sh = src.height || src.videoHeight || 240;
       const tmp = document.createElement("canvas");
-      tmp.width = 256;
-      tmp.height = 224;
-      tmp.getContext("2d").drawImage(src, 0, 0, 256, 224);
+      tmp.width = sw;
+      tmp.height = sh;
+      tmp.getContext("2d").drawImage(src, 0, 0, sw, sh);
       return tmp.toDataURL("image/jpeg", 0.72);
     } catch (e) {
       return "";
