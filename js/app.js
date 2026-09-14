@@ -16,6 +16,8 @@
   let raf = 0;
   let frames = 0;
   let lastFps = performance.now();
+  let frameAcc = 0;
+  let lastTime = 0;
   let audioCtx = null;
   let scriptNode = null;
   let currentRom = { bytes: null, name: "", id: 0, kind: "nes" };
@@ -124,6 +126,13 @@
     KeyX: 0, KeyJ: 0,
     KeyZ: 1, KeyK: 1
   };
+
+  /* Pace the NES core to real time (NTSC ~60.0988 Hz) instead of the display's
+     refresh rate, so it doesn't run fast (and pitch-shift audio) on 120/144 Hz
+     screens. The APU emits ~44100 samples/sec at this rate, matching playback. */
+  const NES_FPS = 60.0988;
+  const NES_FRAME_MS = 1000 / NES_FPS;
+  const NES_MAX_CATCHUP = 4;
 
   function $(id) { return document.getElementById(id); }
 
@@ -401,6 +410,8 @@
     running = true;
     frames = 0;
     lastFps = performance.now();
+    frameAcc = 0;
+    lastTime = 0;
     ensureAudio();
     rememberCurrent();
     scheduleShot();
@@ -507,34 +518,61 @@
     }
   }
 
-  function frame(now) {
-    raf = requestAnimationFrame(frame);
-    if (system !== "nes" || !running) return;
-    if (rewindHeld) {
-      GrokRewind.holdNes(nes, true);
-      blit();
-      return;
-    }
-    if (paused) return;
+  /* Advance exactly one real NES frame (respecting netplay + turbo).
+     Returns the number of emulated frames produced, or 0 if netplay is stalled. */
+  function stepNesFrame() {
     const local = nes.ctrl1.buttons;
     const net = GrokNetplay.consume(local);
     if (net.active) {
-      if (net.stall) {
-        $("fps").textContent = "WAIT";
-        return;
-      }
+      if (net.stall) return 0;
       nes.ctrl1.buttons = net.p1;
       nes.ctrl2.buttons = net.p2;
     }
     nes.stepFrame();
-    if (turbo) {
+    let advanced = 1;
+    if (turbo && !net.active) {
       nes.stepFrame();
       nes.stepFrame();
+      advanced = 3;
     }
     if (net.active) nes.ctrl1.buttons = local;
     GrokRewind.onNesFrame(nes);
-    blit();
-    frames++;
+    return advanced;
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (system !== "nes" || !running) { lastTime = now; frameAcc = 0; return; }
+    if (rewindHeld) {
+      GrokRewind.holdNes(nes, true);
+      blit();
+      lastTime = now;
+      frameAcc = 0;
+      return;
+    }
+    if (paused) { lastTime = now; frameAcc = 0; return; }
+
+    if (!lastTime) lastTime = now;
+    let dt = now - lastTime;
+    lastTime = now;
+    /* Don't replay a big gap (backgrounded tab, hitch) — just resync. */
+    if (dt > 250) dt = NES_FRAME_MS;
+    frameAcc += dt;
+
+    let stepped = 0;
+    let waiting = false;
+    while (frameAcc >= NES_FRAME_MS && stepped < NES_MAX_CATCHUP) {
+      const adv = stepNesFrame();
+      if (adv === 0) { waiting = true; break; }
+      frameAcc -= NES_FRAME_MS;
+      stepped++;
+      frames += adv;
+    }
+    /* Cap the backlog so we never spiral. */
+    if (frameAcc > NES_FRAME_MS * NES_MAX_CATCHUP) frameAcc = 0;
+
+    if (waiting) { $("fps").textContent = "WAIT"; return; }
+    if (stepped > 0) blit();
     if (now - lastFps >= 1000) {
       $("fps").textContent = frames + " FPS";
       frames = 0;
