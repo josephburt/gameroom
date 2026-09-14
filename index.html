@@ -84,7 +84,7 @@
       </nav>
       <div class="side-nav-status">
         <p class="side-tip"><span aria-hidden="true">💡</span> Load a ROM or pick a console to get started.</p>
-        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v23</span></p>
+        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v24</span></p>
       </div>
     </aside>
 
@@ -253,7 +253,7 @@
         <label class="vol" for="vol">Volume
           <input type="range" id="vol" min="0" max="100" value="70" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" />
         </label>
-        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.zip,.ZIP" hidden />
+        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP" hidden />
 
         <div class="meter">
           <span id="meter-label">Mapper</span>
@@ -336,7 +336,7 @@
     <div class="drive-form">
       <h2>BIOS / system files</h2>
       <p>Optional for GBA / GB / GBC. <strong>Required for PlayStation.</strong> Point at a folder of BIOS files you legally own (for example <code>gba_bios.bin</code> or <code>scph5501.bin</code>). Nothing is uploaded or committed — files stay on your machine and are read only when a matching EmulatorJS core starts.</p>
-      <p class="note">GBA (mgba) and optional GB / GBC boot ROMs. PlayStation will not start until a recognized SCPH BIOS is attached.</p>
+      <p class="note">When several PlayStation BIOS dumps are present, GameRoom prefers <code>scph5501.bin</code> (US), then other SCPH names. The preferred file is marked below. GBA / GB / GBC BIOS remain optional.</p>
       <p class="note" id="bios-status">No BIOS folder attached.</p>
       <ul id="bios-list" class="zip-list"></ul>
       <div class="btn-row">

@@ -130,7 +130,7 @@
         ["Start / Select", "Enter / Shift"],
         ["Turbo", "Hold Tab"]
       ],
-      note: "PS1 needs a BIOS you legally own (prefer scph5501.bin) in an attached BIOS folder. Prefer single-file .pbp dumps — multi-track .cue+.bin sets need every file available to the picker."
+      note: "PS1 needs a BIOS you legally own (prefer scph5501.bin) in an attached BIOS folder. Prefer .pbp, or a .zip that contains the .cue plus its .bin tracks. A lone .cue file cannot reach companion tracks."
     }
   };
 
@@ -325,7 +325,7 @@
     gbc: "Load a .gbc / .gb ROM — or drop one here.",
     gba: "Load a .gba ROM. BIOS is optional — attach a BIOS folder if you own gba_bios.bin.",
     genesis: "Load a .md / .gen / .smd ROM — the core fetches on first play.",
-    ps1: "Load a .pbp (preferred) or .cue ROM. Attach a BIOS folder with scph5501.bin first — PS1 will not start without it."
+    ps1: "Load a .pbp, or a .zip with .cue+.bin tracks. Attach a BIOS folder with scph5501.bin first — PS1 will not start without it."
   };
 
   function updateDeck(sys, opts) {
@@ -452,12 +452,18 @@
       ? "Loading the PlayStation core. A BIOS from your folder is required."
       : "Loading the " + spec.label + " core. First time can take a bit — Super FX games like Star Fox need it.");
     let biosUrl = "";
+    let biosName = "";
     try {
       if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc" || kind === "ps1")) {
-        biosUrl = await GrokFolders.biosUrlFor(kind);
+        const info = await GrokFolders.biosFor(kind);
+        if (info) {
+          biosUrl = info.url || "";
+          biosName = info.name || "";
+        }
       }
     } catch (e) {
       biosUrl = "";
+      biosName = "";
     }
     if (kind === "ps1" && !biosUrl) {
       hideBoot();
@@ -465,6 +471,15 @@
       setHint("PlayStation needs a BIOS. Attach a BIOS folder with scph5501.bin (or another SCPH dump you own), then load the game again.");
       updateDeck("ps1", {});
       return;
+    }
+    const ext = GrokRom.extOf(name);
+    if (kind === "ps1" && ext === "cue") {
+      setHint("This is a lone .cue — companion .bin tracks won’t load. Prefer a .pbp, or a .zip that contains the .cue and its tracks.");
+    } else if (kind === "ps1" && biosName) {
+      setHint("Using BIOS “" + biosName + "”.");
+    }
+    if (kind === "ps1" && biosName) {
+      showBoot(title, spec.label, "BIOS: " + biosName + " · loading PlayStation core…");
     }
     await GrokEjs.start(bytes, name, {
       muted: muted,
@@ -479,6 +494,7 @@
         GrokEjs.setVolume(volume, muted);
         rememberCurrent();
         scheduleShot();
+        if (kind === "ps1" && biosName) setHint("Playing with BIOS “" + biosName + "”.");
       }
     });
   }
@@ -767,7 +783,7 @@
   $("btn-reset").onclick = reset;
   $("btn-load").onclick = openFile;
   $("btn-load-home").onclick = function () {
-    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.zip,.ZIP";
+    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP";
     openFile();
   };
   $("file").onchange = function (e) {
@@ -1098,7 +1114,7 @@
     if (ext === "gba" || ext === "agb" || ext === "mb") return "GBA";
     if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return "SNES";
     if (ext === "md" || ext === "gen" || ext === "smd") return "Genesis";
-    if (ext === "pbp" || ext === "cue" || ext === "iso") return "PS1";
+    if (ext === "pbp" || ext === "cue" || ext === "iso" || ext === "bin") return "PS1";
     if (ext === "zip") return "ZIP";
     return ext.toUpperCase();
   }
@@ -1132,10 +1148,17 @@
     }
     try {
       const files = await GrokFolders.listBiosFiles();
-      status.textContent = "Folder: " + (handle.name || "BIOS") + " · " + (files.length ? files.length + " recognized" : "no known BIOS names found");
+      const labels = { gba: "GBA", gb: "GB", gbc: "GBC", sgb: "SGB", ps1: "PlayStation" };
+      const preferred = files.filter(function (f) { return f.preferred; }).length;
+      status.textContent = "Folder: " + (handle.name || "BIOS") + " · " +
+        (files.length
+          ? files.length + " file" + (files.length === 1 ? "" : "s") + " recognized" +
+            (preferred ? " · " + preferred + " preferred" : "")
+          : "no known BIOS names found");
       files.forEach(function (f) {
         const li = document.createElement("li");
-        li.textContent = f.name + "  ·  " + f.kind.toUpperCase();
+        const sys = labels[f.kind] || String(f.kind || "").toUpperCase();
+        li.textContent = f.name + "  ·  " + sys + (f.preferred ? "  ·  preferred" : "");
         list.appendChild(li);
       });
     } catch (err) {
