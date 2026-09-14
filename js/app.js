@@ -16,6 +16,8 @@
   let raf = 0;
   let frames = 0;
   let lastFps = performance.now();
+  let frameAcc = 0;
+  let lastTime = 0;
   let audioCtx = null;
   let scriptNode = null;
   let currentRom = { bytes: null, name: "", id: 0, kind: "nes" };
@@ -114,6 +116,21 @@
         ["Turbo", "Hold Tab"]
       ],
       note: "Genesis / Mega Drive uses EmulatorJS segaMD (genesis_plus_gx). First load fetches the core from the CDN."
+    },
+    ps1: {
+      label: "PlayStation",
+      accept: ".pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP",
+      meter: "System",
+      core: "psx",
+      needsBios: true,
+      keys: [
+        ["D-Pad", "Arrow keys / WASD"],
+        ["× / ○ / □ / △", "X / Z / A / S (via emulator map)"],
+        ["L1 / R1", "Q / E"],
+        ["Start / Select", "Enter / Shift"],
+        ["Turbo", "Hold Tab"]
+      ],
+      note: "PS1 needs a BIOS you legally own (prefer scph5501.bin) in an attached BIOS folder. Prefer single-file .pbp dumps — multi-track .cue+.bin sets need every file available to the picker."
     }
   };
 
@@ -124,6 +141,13 @@
     KeyX: 0, KeyJ: 0,
     KeyZ: 1, KeyK: 1
   };
+
+  /* Pace the NES core to real time (NTSC ~60.0988 Hz) instead of the display's
+     refresh rate, so it doesn't run fast (and pitch-shift audio) on 120/144 Hz
+     screens. The APU emits ~44100 samples/sec at this rate, matching playback. */
+  const NES_FPS = 60.0988;
+  const NES_FRAME_MS = 1000 / NES_FPS;
+  const NES_MAX_CATCHUP = 4;
 
   function $(id) { return document.getElementById(id); }
 
@@ -170,10 +194,13 @@
         ? canvas
         : document.querySelector("#ejs-player canvas, #ejs-player .ejs_canvas");
       if (!src) return "";
+      /* Preserve the source aspect ratio so thumbnails aren't squished. */
+      const sw = src.width || src.videoWidth || 256;
+      const sh = src.height || src.videoHeight || 240;
       const tmp = document.createElement("canvas");
-      tmp.width = 256;
-      tmp.height = 224;
-      tmp.getContext("2d").drawImage(src, 0, 0, 256, 224);
+      tmp.width = sw;
+      tmp.height = sh;
+      tmp.getContext("2d").drawImage(src, 0, 0, sw, sh);
       return tmp.toDataURL("image/jpeg", 0.72);
     } catch (e) {
       return "";
@@ -258,7 +285,7 @@
     });
   }
 
-  function isEjs(sys) { return sys === "gb" || sys === "gbc" || sys === "snes" || sys === "gba" || sys === "genesis"; }
+  function isEjs(sys) { return sys === "gb" || sys === "gbc" || sys === "snes" || sys === "gba" || sys === "genesis" || sys === "ps1"; }
 
   function renderKeys(sys) {
     const spec = SYSTEMS[sys] || SYSTEMS.nes;
@@ -297,7 +324,8 @@
     gb: "Load a .gb ROM — or drop one here.",
     gbc: "Load a .gbc / .gb ROM — or drop one here.",
     gba: "Load a .gba ROM. BIOS is optional — attach a BIOS folder if you own gba_bios.bin.",
-    genesis: "Load a .md / .gen / .smd ROM — the core fetches on first play."
+    genesis: "Load a .md / .gen / .smd ROM — the core fetches on first play.",
+    ps1: "Load a .pbp (preferred) or .cue ROM. Attach a BIOS folder with scph5501.bin first — PS1 will not start without it."
   };
 
   function updateDeck(sys, opts) {
@@ -401,6 +429,8 @@
     running = true;
     frames = 0;
     lastFps = performance.now();
+    frameAcc = 0;
+    lastTime = 0;
     ensureAudio();
     rememberCurrent();
     scheduleShot();
@@ -418,21 +448,30 @@
     setPlayingUi(title, GrokRom.systemLabel(kind, bytes));
     $("fps").textContent = spec.label;
     running = true;
-    showBoot(title, spec.label, "Loading the " + spec.label + " core. First time can take a bit — Super FX games like Star Fox need it.");
+    showBoot(title, spec.label, kind === "ps1"
+      ? "Loading the PlayStation core. A BIOS from your folder is required."
+      : "Loading the " + spec.label + " core. First time can take a bit — Super FX games like Star Fox need it.");
     let biosUrl = "";
     try {
-      if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc")) {
+      if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc" || kind === "ps1")) {
         biosUrl = await GrokFolders.biosUrlFor(kind);
       }
     } catch (e) {
       biosUrl = "";
+    }
+    if (kind === "ps1" && !biosUrl) {
+      hideBoot();
+      running = false;
+      setHint("PlayStation needs a BIOS. Attach a BIOS folder with scph5501.bin (or another SCPH dump you own), then load the game again.");
+      updateDeck("ps1", {});
+      return;
     }
     await GrokEjs.start(bytes, name, {
       muted: muted,
       volume: volume,
       core: spec.core,
       biosUrl: biosUrl,
-      color: ({ snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa" })[kind] || "#ff3b4e",
+      color: ({ snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa", ps1: "#c0c0c0" })[kind] || "#ff3b4e",
       gameId: currentRom.id,
       onStart: function () {
         hideBoot();
@@ -448,7 +487,7 @@
     if (rom.kind === "nes") loadNes(rom.bytes, rom.name);
     else if (isEjs(rom.kind)) {
       return loadEjs(rom.bytes, rom.name, rom.kind);
-    } else throw new Error("Unsupported ROM — Phase 1 supports NES, SNES, GB, GBC, GBA, and Genesis");
+    }     else throw new Error("Unsupported ROM — Phase 1 supports NES, SNES, GB, GBC, GBA, Genesis, and PlayStation");
   }
 
   function pickZipRom(roms) {
@@ -486,9 +525,9 @@
     try {
       setHint("Reading “" + (name || "ROM") + "”…");
       showPlay();
-      const roms = await GrokRom.listRoms(bytes, name);
+      const roms = await GrokRom.listRoms(bytes, name, { prefer: system === "ps1" ? "ps1" : "" });
       if (!roms.length) {
-        throw new Error("No supported ROM found (NES / SNES / GB / GBC / GBA / Genesis). If this is a zip, re-zip as .zip (not 7z/RAR).");
+        throw new Error("No supported ROM found (NES / SNES / GB / GBC / GBA / Genesis / PS1). If this is a zip, re-zip as .zip (not 7z/RAR). Prefer .pbp for PlayStation.");
       }
       let rom = roms[0];
       if (roms.length > 1) {
@@ -507,34 +546,61 @@
     }
   }
 
-  function frame(now) {
-    raf = requestAnimationFrame(frame);
-    if (system !== "nes" || !running) return;
-    if (rewindHeld) {
-      GrokRewind.holdNes(nes, true);
-      blit();
-      return;
-    }
-    if (paused) return;
+  /* Advance exactly one real NES frame (respecting netplay + turbo).
+     Returns the number of emulated frames produced, or 0 if netplay is stalled. */
+  function stepNesFrame() {
     const local = nes.ctrl1.buttons;
     const net = GrokNetplay.consume(local);
     if (net.active) {
-      if (net.stall) {
-        $("fps").textContent = "WAIT";
-        return;
-      }
+      if (net.stall) return 0;
       nes.ctrl1.buttons = net.p1;
       nes.ctrl2.buttons = net.p2;
     }
     nes.stepFrame();
-    if (turbo) {
+    let advanced = 1;
+    if (turbo && !net.active) {
       nes.stepFrame();
       nes.stepFrame();
+      advanced = 3;
     }
     if (net.active) nes.ctrl1.buttons = local;
     GrokRewind.onNesFrame(nes);
-    blit();
-    frames++;
+    return advanced;
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (system !== "nes" || !running) { lastTime = now; frameAcc = 0; return; }
+    if (rewindHeld) {
+      GrokRewind.holdNes(nes, true);
+      blit();
+      lastTime = now;
+      frameAcc = 0;
+      return;
+    }
+    if (paused) { lastTime = now; frameAcc = 0; return; }
+
+    if (!lastTime) lastTime = now;
+    let dt = now - lastTime;
+    lastTime = now;
+    /* Don't replay a big gap (backgrounded tab, hitch) — just resync. */
+    if (dt > 250) dt = NES_FRAME_MS;
+    frameAcc += dt;
+
+    let stepped = 0;
+    let waiting = false;
+    while (frameAcc >= NES_FRAME_MS && stepped < NES_MAX_CATCHUP) {
+      const adv = stepNesFrame();
+      if (adv === 0) { waiting = true; break; }
+      frameAcc -= NES_FRAME_MS;
+      stepped++;
+      frames += adv;
+    }
+    /* Cap the backlog so we never spiral. */
+    if (frameAcc > NES_FRAME_MS * NES_MAX_CATCHUP) frameAcc = 0;
+
+    if (waiting) { $("fps").textContent = "WAIT"; return; }
+    if (stepped > 0) blit();
     if (now - lastFps >= 1000) {
       $("fps").textContent = frames + " FPS";
       frames = 0;
@@ -701,7 +767,7 @@
   $("btn-reset").onclick = reset;
   $("btn-load").onclick = openFile;
   $("btn-load-home").onclick = function () {
-    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.zip,.ZIP";
+    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.zip,.ZIP";
     openFile();
   };
   $("file").onchange = function (e) {
@@ -1032,6 +1098,7 @@
     if (ext === "gba" || ext === "agb" || ext === "mb") return "GBA";
     if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return "SNES";
     if (ext === "md" || ext === "gen" || ext === "smd") return "Genesis";
+    if (ext === "pbp" || ext === "cue" || ext === "iso") return "PS1";
     if (ext === "zip") return "ZIP";
     return ext.toUpperCase();
   }

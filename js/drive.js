@@ -139,7 +139,7 @@
         .addView(view)
         .setOAuthToken(token)
         .setOrigin(window.location.origin)
-        .setTitle("Select a .nes, .gb, .gbc, .sfc, .smc, or .zip file")
+        .setTitle("Select a ROM (.nes, .gb, .gbc, .sfc/.smc, .gba, .md/.gen, .pbp/.cue, or .zip)")
         .setCallback(function (data) {
           if (!data) return;
           if (data.action === google.picker.Action.LOADED) return;
@@ -172,8 +172,11 @@
     const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
     if (!res.ok) {
       let extra = "";
-      try { extra = (await res.json()).error && extra; } catch (e) {}
-      throw new Error("Drive download failed (" + res.status + "). Pick the file again, and set App ID to your Cloud project number.");
+      try {
+        const j = await res.json();
+        if (j && j.error && j.error.message) extra = " " + j.error.message;
+      } catch (e) {}
+      throw new Error("Drive download failed (" + res.status + ")." + extra + " Pick the file again, and set App ID to your Cloud project number.");
     }
     const buf = await res.arrayBuffer();
     return {
