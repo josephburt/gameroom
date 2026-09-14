@@ -174,6 +174,44 @@
     return files;
   }
 
+  function zipIsPs1DiscSet(files) {
+    let cues = 0;
+    let tracks = 0;
+    let foreign = 0;
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const e = extOf(f.name);
+      if (e === "cue") {
+        cues++;
+        continue;
+      }
+      if (e === "bin" || e === "img" || e === "iso" || e === "mdf" || e === "toc" || e === "ccd" || e === "sub") {
+        tracks++;
+        continue;
+      }
+      if (e === "pbp") {
+        foreign++;
+        continue;
+      }
+      const kind = detect(f.bytes, f.name, "");
+      if (kind) foreign++;
+    }
+    return cues >= 1 && tracks >= 1 && foreign === 0;
+  }
+
+  /* Drop loose PS1 track dumps when a .cue is also listed (same zip / batch). */
+  function collapsePs1Tracks(roms) {
+    const hasCue = roms.some(function (r) {
+      return r.kind === "ps1" && extOf(r.name) === "cue";
+    });
+    if (!hasCue) return roms;
+    return roms.filter(function (r) {
+      if (r.kind !== "ps1") return true;
+      const e = extOf(r.name);
+      return e !== "bin" && e !== "img" && e !== "iso" && e !== "mdf";
+    });
+  }
+
   async function listRoms(bytes, name, opts) {
     opts = opts || {};
     const prefer = opts.prefer || "";
@@ -184,6 +222,15 @@
       if (isZip(file.bytes) || extOf(file.name) === "zip") {
         try {
           const inner = await unzipEntries(file.bytes);
+          if (zipIsPs1DiscSet(inner)) {
+            out.push({
+              name: file.name || "game.zip",
+              path: file.path || file.name || "game.zip",
+              bytes: file.bytes,
+              kind: "ps1"
+            });
+            return;
+          }
           for (let i = 0; i < inner.length; i++) await consider(inner[i]);
         } catch (e) {}
         return;
@@ -194,11 +241,14 @@
 
     if (isZip(bytes) || extOf(name) === "zip") {
       const files = await unzipEntries(bytes);
+      if (zipIsPs1DiscSet(files)) {
+        return [{ name: name || "game.zip", path: name || "game.zip", bytes: bytes, kind: "ps1" }];
+      }
       for (let i = 0; i < files.length; i++) await consider(files[i]);
     } else {
       await consider({ name: name || "ROM", bytes: bytes });
     }
-    return out;
+    return collapsePs1Tracks(out);
   }
 
   function romId(bytes) {
@@ -277,6 +327,8 @@
     detect: detect,
     listRoms: listRoms,
     romId: romId,
-    skipJunk: skipJunk
+    skipJunk: skipJunk,
+    zipIsPs1DiscSet: zipIsPs1DiscSet,
+    collapsePs1Tracks: collapsePs1Tracks
   };
 })(typeof window !== "undefined" ? window : globalThis);

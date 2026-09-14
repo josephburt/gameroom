@@ -18,7 +18,7 @@ Installable as a PWA. Recently played games stay in this browser so they come ba
 | Game Boy Color | EmulatorJS / gambatte | `.gbc` | Phase 1 |
 | Game Boy Advance | EmulatorJS / mgba (`gba`) | `.gba` | Phase 1 |
 | Sega Genesis / Mega Drive | EmulatorJS / genesis_plus_gx (`segaMD`) | `.md` `.gen` `.smd` | Phase 1 |
-| PlayStation | EmulatorJS / Beetle PSX (`psx`) | `.pbp` `.cue` (BIOS required) | Phase 1 |
+| PlayStation | EmulatorJS / Beetle PSX (`psx`) | `.pbp`, or `.zip` with `.cue`+tracks (BIOS required) | Phase 1 |
 | N64 · DS · Saturn | — | — | Coming soon (placeholders) |
 | PS2 · GameCube · Wii · Xbox | — | — | Not planned for this phase |
 
@@ -64,7 +64,7 @@ Symmetric NATs without TURN may fail. Treat EmulatorJS netplay as best-effort.
 On Chrome, Edge, and other Chromium browsers, GameRoom can attach local folders with the File System Access API:
 
 1. **Bookshelf folder** — pick a directory of ROMs you own (`.nes` `.gb` `.gbc` `.gba` `.sfc` `.smc` `.md` `.gen` `.smd` `.zip`, plus a few aliases). GameRoom scans a few levels deep, lists games in a Bookshelf dialog, and loads the chosen file through the same pipeline as disk / Drive / zip picks.
-2. **BIOS folder** (optional for GBA/GB/GBC; **required for PlayStation**) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, `gbc_bios.bin`, or a PS1 dump like `scph5501.bin`. When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded.
+2. **BIOS folder** (optional for GBA/GB/GBC; **required for PlayStation**) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, `gbc_bios.bin`, or a PS1 dump like `scph5501.bin`. When several PS1 BIOS files are present, GameRoom prefers `scph5501.bin` and marks it in the BIOS dialog. When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded. For multi-track PS1 dumps, load a `.zip` that contains the `.cue` and its `.bin` tracks (or a single-file `.pbp`); a lone `.cue` cannot reach companion files.
 
 Folder handles are stored in IndexedDB on this device. On the next visit Chromium may ask you to re-allow access (`queryPermission` / `requestPermission`). Safari and Firefox hide these controls and keep the normal file input + Google Drive paths.
 

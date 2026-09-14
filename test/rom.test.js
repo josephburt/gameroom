@@ -62,3 +62,34 @@ describe("GrokRom.systemLabel", () => {
     assert.equal(GrokRom.systemLabel("ps1"), "PlayStation");
   });
 });
+
+describe("GrokRom PS1 disc-set helpers", () => {
+  it("recognizes a cue+bin file list as a PS1 disc set", () => {
+    const files = [
+      { name: "game.cue", bytes: new Uint8Array(8) },
+      { name: "game.bin", bytes: new Uint8Array(8) }
+    ];
+    assert.equal(GrokRom.zipIsPs1DiscSet(files), true);
+  });
+
+  it("rejects a disc set when a foreign ROM is mixed in", () => {
+    const files = [
+      { name: "game.cue", bytes: new Uint8Array(8) },
+      { name: "game.bin", bytes: new Uint8Array(8) },
+      { name: "DEMO.nes", bytes: b64ToBytes(DEMO_ROM_B64) }
+    ];
+    assert.equal(GrokRom.zipIsPs1DiscSet(files), false);
+  });
+
+  it("collapses loose track dumps when a .cue is present", () => {
+    const roms = [
+      { name: "game.cue", kind: "ps1", bytes: new Uint8Array(4) },
+      { name: "game.bin", kind: "ps1", bytes: new Uint8Array(4) },
+      { name: "other.nes", kind: "nes", bytes: new Uint8Array(4) }
+    ];
+    const out = GrokRom.collapsePs1Tracks(roms);
+    assert.equal(out.length, 2);
+    assert.equal(out[0].name, "game.cue");
+    assert.equal(out[1].name, "other.nes");
+  });
+});

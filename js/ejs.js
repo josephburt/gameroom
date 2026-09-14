@@ -27,7 +27,7 @@
     if (core === "psx") {
       if (ext === "pbp" || ext === "cue" || ext === "bin" || ext === "iso" ||
           ext === "img" || ext === "ccd" || ext === "m3u" || ext === "toc" ||
-          ext === "cbn" || ext === "mdf") return name;
+          ext === "cbn" || ext === "mdf" || ext === "zip") return name;
       return (name || "game") + ".pbp";
     }
     if (ext === "gb" || ext === "gbc" || ext === "dmg" || ext === "sgb") return name;

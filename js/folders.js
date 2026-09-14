@@ -42,6 +42,10 @@
     "scph1001.bin",
     "scph5500.bin",
     "scph5502.bin",
+    "scph7000.bin",
+    "scph7002.bin",
+    "scph1000.bin",
+    "scph1002.bin",
     "psxonpsp660.bin"
   ];
 
@@ -149,7 +153,7 @@
     return out;
   }
 
-  async function walkBios(dir, depth, map) {
+  async function walkBios(dir, depth, all) {
     if (!dir || depth > 2) return;
     const iter = dir.values ? dir.values() : dir.entries();
     for await (const item of iter) {
@@ -161,34 +165,46 @@
       }
       if (!handle || !name || name.startsWith(".")) continue;
       if (handle.kind === "directory") {
-        await walkBios(handle, depth + 1, map);
+        await walkBios(handle, depth + 1, all);
         continue;
       }
       if (handle.kind !== "file") continue;
       const key = String(name).toLowerCase();
       const kind = BIOS_NAMES[key];
       if (!kind) continue;
-      const prev = map[kind];
-      if (!prev || biosPrefer(kind, key, prev.key)) {
-        map[kind] = { name: name, handle: handle, key: key };
-      }
+      all.push({ name: name, handle: handle, key: key, kind: kind });
     }
   }
 
+  function biosRank(kind, key) {
+    if (kind !== "ps1") return 0;
+    const i = PS1_BIOS_PREF.indexOf(key);
+    return i === -1 ? 100 : i;
+  }
+
   function biosPrefer(kind, nextKey, prevKey) {
-    if (kind !== "ps1") return false;
-    const a = PS1_BIOS_PREF.indexOf(nextKey);
-    const b = PS1_BIOS_PREF.indexOf(prevKey);
-    const ra = a === -1 ? 100 : a;
-    const rb = b === -1 ? 100 : b;
-    return ra < rb;
+    return biosRank(kind, nextKey) < biosRank(kind, prevKey);
+  }
+
+  function preferredFromAll(all) {
+    const preferred = {};
+    for (let i = 0; i < all.length; i++) {
+      const e = all[i];
+      const prev = preferred[e.kind];
+      if (!prev || biosPrefer(e.kind, e.key, prev.key)) preferred[e.kind] = e;
+    }
+    return preferred;
   }
 
   async function scanBios(handle) {
-    const map = {};
-    if (!handle) return map;
-    await walkBios(handle, 0, map);
-    return map;
+    const all = [];
+    if (!handle) return { preferred: {}, all: all };
+    await walkBios(handle, 0, all);
+    all.sort(function (a, b) {
+      if (a.kind !== b.kind) return a.kind.localeCompare(b.kind);
+      return biosRank(a.kind, a.key) - biosRank(b.kind, b.key) || a.name.localeCompare(b.name);
+    });
+    return { preferred: preferredFromAll(all), all: all };
   }
 
   function revokeBiosUrl() {
@@ -281,33 +297,53 @@
     return { bytes: new Uint8Array(buf), name: entry.name || file.name };
   }
 
-  async function biosMap() {
-    if (!biosHandle) return {};
-    if (!(await ensurePermission(biosHandle))) return {};
+  async function biosCacheFull() {
+    if (!biosHandle) return { preferred: {}, all: [] };
+    if (!(await ensurePermission(biosHandle))) return { preferred: {}, all: [] };
     if (!biosCache) biosCache = await scanBios(biosHandle);
     return biosCache;
   }
 
+  async function biosMap() {
+    return (await biosCacheFull()).preferred;
+  }
+
   async function listBiosFiles() {
-    const map = await biosMap();
-    return Object.keys(map).map(function (k) {
-      return { kind: k, name: map[k].name };
+    const cache = await biosCacheFull();
+    const preferred = cache.preferred;
+    return cache.all.map(function (e) {
+      const pick = preferred[e.kind];
+      return {
+        kind: e.kind,
+        name: e.name,
+        key: e.key,
+        preferred: !!(pick && pick.key === e.key)
+      };
     });
   }
 
-  /* Prefer GBA BIOS for gba; GB/GBC for those; PS1 required for EmulatorJS psx. Empty if missing. */
-  async function biosUrlFor(kind) {
+  function entryForKind(map, kind) {
+    if (kind === "gba") return map.gba || null;
+    if (kind === "gbc") return map.gbc || map.gb || null;
+    if (kind === "gb") return map.gb || map.gbc || null;
+    if (kind === "ps1") return map.ps1 || null;
+    return map[kind] || null;
+  }
+
+  /* Prefer GBA BIOS for gba; GB/GBC for those; PS1 required for EmulatorJS psx. */
+  async function biosFor(kind) {
     revokeBiosUrl();
     const map = await biosMap();
-    let entry = null;
-    if (kind === "gba") entry = map.gba;
-    else if (kind === "gbc") entry = map.gbc || map.gb;
-    else if (kind === "gb") entry = map.gb || map.gbc;
-    else if (kind === "ps1") entry = map.ps1;
-    if (!entry || !entry.handle) return "";
+    const entry = entryForKind(map, kind);
+    if (!entry || !entry.handle) return null;
     const file = await entry.handle.getFile();
     biosObjectUrl = URL.createObjectURL(file);
-    return biosObjectUrl;
+    return { url: biosObjectUrl, name: entry.name, key: entry.key || "" };
+  }
+
+  async function biosUrlFor(kind) {
+    const info = await biosFor(kind);
+    return info ? info.url : "";
   }
 
   g.GrokFolders = {
@@ -323,8 +359,12 @@
     listRomLibrary: listRomLibrary,
     readEntry: readEntry,
     listBiosFiles: listBiosFiles,
+    biosFor: biosFor,
     biosUrlFor: biosUrlFor,
     revokeBiosUrl: revokeBiosUrl,
-    ensurePermission: ensurePermission
+    ensurePermission: ensurePermission,
+    /* Test helpers (pure preference ranking). */
+    _biosPrefer: biosPrefer,
+    _preferredFromAll: preferredFromAll
   };
 })(typeof window !== "undefined" ? window : globalThis);
