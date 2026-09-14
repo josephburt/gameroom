@@ -139,7 +139,7 @@
         .addView(view)
         .setOAuthToken(token)
         .setOrigin(window.location.origin)
-        .setTitle("Select a ROM (.nes, .gb, .gbc, .sfc/.smc, .gba, .md/.gen, or .zip)")
+        .setTitle("Select a ROM (.nes, .gb, .gbc, .sfc/.smc, .gba, .md/.gen, .pbp/.cue, or .zip)")
         .setCallback(function (data) {
           if (!data) return;
           if (data.action === google.picker.Action.LOADED) return;

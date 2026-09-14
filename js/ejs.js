@@ -24,6 +24,12 @@
       if (ext === "md" || ext === "gen" || ext === "smd" || ext === "bin") return name;
       return (name || "game") + ".md";
     }
+    if (core === "psx") {
+      if (ext === "pbp" || ext === "cue" || ext === "bin" || ext === "iso" ||
+          ext === "img" || ext === "ccd" || ext === "m3u" || ext === "toc" ||
+          ext === "cbn" || ext === "mdf") return name;
+      return (name || "game") + ".pbp";
+    }
     if (ext === "gb" || ext === "gbc" || ext === "dmg" || ext === "sgb") return name;
     return (name || "game") + ".gb";
   }
@@ -32,6 +38,7 @@
     if (core === "snes") return "snes";
     if (core === "gba") return "gba";
     if (core === "segaMD") return "segaMD";
+    if (core === "psx") return "psx";
     return "gb";
   }
 

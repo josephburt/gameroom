@@ -1,6 +1,6 @@
 # Burt Labs GameRoom
 
-A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, and Sega Genesis. Play the built-in NES demo, drop in a ROM you legally own, attach a local **Bookshelf** folder (Chromium), or load one from Google Drive.
+A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, Sega Genesis, and PlayStation. Play the built-in NES demo, drop in a ROM you legally own, attach a local **Bookshelf** folder (Chromium), or load one from Google Drive.
 
 **Play it:** [https://gameroom.burtlabs.org](https://gameroom.burtlabs.org)
 
@@ -18,7 +18,8 @@ Installable as a PWA. Recently played games stay in this browser so they come ba
 | Game Boy Color | EmulatorJS / gambatte | `.gbc` | Phase 1 |
 | Game Boy Advance | EmulatorJS / mgba (`gba`) | `.gba` | Phase 1 |
 | Sega Genesis / Mega Drive | EmulatorJS / genesis_plus_gx (`segaMD`) | `.md` `.gen` `.smd` | Phase 1 |
-| PS1 · N64 · DS · Saturn | — | — | Coming soon (placeholders) |
+| PlayStation | EmulatorJS / Beetle PSX (`psx`) | `.pbp` `.cue` (BIOS required) | Phase 1 |
+| N64 · DS · Saturn | — | — | Coming soon (placeholders) |
 | PS2 · GameCube · Wii · Xbox | — | — | Not planned for this phase |
 
 Zipped dumps (`.zip`) are unpacked in the browser.
@@ -63,7 +64,7 @@ Symmetric NATs without TURN may fail. Treat EmulatorJS netplay as best-effort.
 On Chrome, Edge, and other Chromium browsers, GameRoom can attach local folders with the File System Access API:
 
 1. **Bookshelf folder** — pick a directory of ROMs you own (`.nes` `.gb` `.gbc` `.gba` `.sfc` `.smc` `.md` `.gen` `.smd` `.zip`, plus a few aliases). GameRoom scans a few levels deep, lists games in a Bookshelf dialog, and loads the chosen file through the same pipeline as disk / Drive / zip picks.
-2. **BIOS folder** (optional, separate control) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, or `gbc_bios.bin`. When a matching EmulatorJS core starts (GBA mgba, and optional GB/GBC boot ROMs), GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded.
+2. **BIOS folder** (optional for GBA/GB/GBC; **required for PlayStation**) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, `gbc_bios.bin`, or a PS1 dump like `scph5501.bin`. When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded.
 
 Folder handles are stored in IndexedDB on this device. On the next visit Chromium may ask you to re-allow access (`queryPermission` / `requestPermission`). Safari and Firefox hide these controls and keep the normal file input + Google Drive paths.
 

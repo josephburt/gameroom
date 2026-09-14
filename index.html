@@ -84,7 +84,7 @@
       </nav>
       <div class="side-nav-status">
         <p class="side-tip"><span aria-hidden="true">💡</span> Load a ROM or pick a console to get started.</p>
-        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v22</span></p>
+        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v23</span></p>
       </div>
     </aside>
 
@@ -118,7 +118,9 @@
           </button>
           <button type="button" class="sys-card hotspot is-soon" style="--x:49.2%;--y:53%;--w:10%;--h:12%" data-soon="n64" role="listitem" aria-label="N64 — coming soon" aria-disabled="true" tabindex="-1">
           </button>
-          <button type="button" class="sys-card hotspot is-soon" style="--x:61%;--y:55%;--w:11.2%;--h:9.5%" data-soon="ps1" role="listitem" aria-label="PlayStation — coming soon" aria-disabled="true" tabindex="-1">
+          <button type="button" class="sys-card hotspot" style="--x:61%;--y:55%;--w:11.2%;--h:9.5%" data-sys="ps1" role="listitem" aria-label="PlayStation — click to play" data-tip="PlayStation — needs BIOS + ROM">
+            <svg class="hotspot-sil" viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true"><path d="M18,28 C40,14 80,14 102,28 L108,52 C86,66 34,66 12,52 Z"/></svg>
+            <span class="hotspot-label">PS1 — needs BIOS</span>
           </button>
           <button type="button" class="sys-card hotspot is-soon" style="--x:73.6%;--y:53.5%;--w:11.6%;--h:10.5%" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" aria-disabled="true" tabindex="-1">
           </button>
@@ -251,7 +253,7 @@
         <label class="vol" for="vol">Volume
           <input type="range" id="vol" min="0" max="100" value="70" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" />
         </label>
-        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.zip,.ZIP" hidden />
+        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.zip,.ZIP" hidden />
 
         <div class="meter">
           <span id="meter-label">Mapper</span>
@@ -333,8 +335,8 @@
   <dialog id="bios-dlg">
     <div class="drive-form">
       <h2>BIOS / system files</h2>
-      <p>Optional. Point at a folder of BIOS files you legally own (for example <code>gba_bios.bin</code>). Nothing is uploaded or committed — files stay on your machine and are read only when a matching EmulatorJS core starts.</p>
-      <p class="note">Useful for GBA (mgba) and optional GB / GBC boot ROMs. Most games still boot without BIOS.</p>
+      <p>Optional for GBA / GB / GBC. <strong>Required for PlayStation.</strong> Point at a folder of BIOS files you legally own (for example <code>gba_bios.bin</code> or <code>scph5501.bin</code>). Nothing is uploaded or committed — files stay on your machine and are read only when a matching EmulatorJS core starts.</p>
+      <p class="note">GBA (mgba) and optional GB / GBC boot ROMs. PlayStation will not start until a recognized SCPH BIOS is attached.</p>
       <p class="note" id="bios-status">No BIOS folder attached.</p>
       <ul id="bios-list" class="zip-list"></ul>
       <div class="btn-row">

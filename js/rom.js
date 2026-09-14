@@ -8,11 +8,14 @@
     gb: 1, gbc: 1, sgb: 1, dmg: 1,
     sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1,
     gba: 1, agb: 1, mb: 1,
-    md: 1, gen: 1, smd: 1, bin: 1
+    md: 1, gen: 1, smd: 1, bin: 1,
+    cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1
   };
   const SNES_EXT = { sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1 };
   const GBA_EXT = { gba: 1, agb: 1, mb: 1 };
   const GEN_EXT = { md: 1, gen: 1, smd: 1 };
+  /* Clear PS1 containers / dumps. .bin alone is ambiguous with Genesis — only via prefer. */
+  const PS1_EXT = { cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1 };
 
   function extOf(name) {
     const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
@@ -105,6 +108,12 @@
     return false;
   }
 
+  /* Sony PBP (PS1/PSP container) magic at offset 0. */
+  function isPbp(bytes) {
+    return bytes && bytes.length >= 4 &&
+      bytes[0] === 0x00 && bytes[1] === 0x50 && bytes[2] === 0x42 && bytes[3] === 0x50;
+  }
+
   function skipJunk(bytes) {
     if (bytes.length > 528 && isNes(bytes.subarray(512))) return bytes.subarray(512);
     if (bytes.length > 512 + 0x150 && isGb(bytes.subarray(512))) return bytes.subarray(512);
@@ -121,12 +130,13 @@
     return "Game Boy";
   }
 
-  function detect(bytes, name) {
+  function detect(bytes, name, prefer) {
     bytes = skipJunk(bytes);
     if (isNes(bytes)) return "nes";
     if (isGba(bytes)) return "gba";
     if (isGb(bytes)) return bytes[0x143] === 0xc0 || bytes[0x143] === 0x80 ? "gbc" : "gb";
     if (isSnes(bytes)) return "snes";
+    if (isPbp(bytes)) return "ps1";
     if (isGenesis(bytes)) return "genesis";
     const ext = extOf(name);
     if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "nes";
@@ -135,7 +145,9 @@
     if (GBA_EXT[ext]) return "gba";
     if (SNES_EXT[ext]) return "snes";
     if (GEN_EXT[ext]) return "genesis";
-    /* .bin is ambiguous — only claim Genesis if header matched above */
+    if (PS1_EXT[ext]) return "ps1";
+    /* .bin is ambiguous (Genesis vs PS1 track). Only claim PS1 when preferred. */
+    if (ext === "bin" && prefer === "ps1") return "ps1";
     return null;
   }
 
@@ -162,7 +174,9 @@
     return files;
   }
 
-  async function listRoms(bytes, name) {
+  async function listRoms(bytes, name, opts) {
+    opts = opts || {};
+    const prefer = opts.prefer || "";
     const out = [];
 
     async function consider(file) {
@@ -174,7 +188,7 @@
         } catch (e) {}
         return;
       }
-      const kind = detect(file.bytes, file.name);
+      const kind = detect(file.bytes, file.name, prefer);
       if (kind) out.push({ name: file.name, path: file.path || file.name, bytes: file.bytes, kind: kind });
     }
 
@@ -200,6 +214,7 @@
     if (kind === "snes") return "Super NES";
     if (kind === "gba") return "Game Boy Advance";
     if (kind === "genesis") return "Sega Genesis";
+    if (kind === "ps1") return "PlayStation";
     if (kind === "gb" || kind === "gbc") return gbLabel(bytes);
     return kind || "ROM";
   }
@@ -255,6 +270,7 @@
     isSnes: isSnes,
     isGba: isGba,
     isGenesis: isGenesis,
+    isPbp: isPbp,
     gbLabel: gbLabel,
     systemLabel: systemLabel,
     prettyName: prettyName,

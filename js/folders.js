@@ -13,14 +13,37 @@
     sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1,
     gba: 1, agb: 1, mb: 1,
     md: 1, gen: 1, smd: 1,
+    cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1,
     zip: 1
   };
+  /* Lowercase basename → kind. Multiple PS1 names share kind; preference is in biosUrlFor. */
   const BIOS_NAMES = {
     "gba_bios.bin": "gba",
     "gb_bios.bin": "gb",
     "gbc_bios.bin": "gbc",
-    "sgb_bios.bin": "sgb"
+    "sgb_bios.bin": "sgb",
+    "scph5501.bin": "ps1",
+    "scph7001.bin": "ps1",
+    "scph101.bin": "ps1",
+    "scph1001.bin": "ps1",
+    "scph5500.bin": "ps1",
+    "scph5502.bin": "ps1",
+    "scph7000.bin": "ps1",
+    "scph7002.bin": "ps1",
+    "scph1000.bin": "ps1",
+    "scph1002.bin": "ps1",
+    "psxonpsp660.bin": "ps1"
   };
+  /* Preferred order when several PS1 BIOS files are present (US first). */
+  const PS1_BIOS_PREF = [
+    "scph5501.bin",
+    "scph7001.bin",
+    "scph101.bin",
+    "scph1001.bin",
+    "scph5500.bin",
+    "scph5502.bin",
+    "psxonpsp660.bin"
+  ];
 
   let romHandle = null;
   let biosHandle = null;
@@ -143,10 +166,22 @@
       }
       if (handle.kind !== "file") continue;
       const key = String(name).toLowerCase();
-      if (BIOS_NAMES[key] && !map[BIOS_NAMES[key]]) {
-        map[BIOS_NAMES[key]] = { name: name, handle: handle, key: key };
+      const kind = BIOS_NAMES[key];
+      if (!kind) continue;
+      const prev = map[kind];
+      if (!prev || biosPrefer(kind, key, prev.key)) {
+        map[kind] = { name: name, handle: handle, key: key };
       }
     }
+  }
+
+  function biosPrefer(kind, nextKey, prevKey) {
+    if (kind !== "ps1") return false;
+    const a = PS1_BIOS_PREF.indexOf(nextKey);
+    const b = PS1_BIOS_PREF.indexOf(prevKey);
+    const ra = a === -1 ? 100 : a;
+    const rb = b === -1 ? 100 : b;
+    return ra < rb;
   }
 
   async function scanBios(handle) {
@@ -260,7 +295,7 @@
     });
   }
 
-  /* Prefer GBA BIOS for gba; GB/GBC BIOS for those cores. Optional — empty string if missing. */
+  /* Prefer GBA BIOS for gba; GB/GBC for those; PS1 required for EmulatorJS psx. Empty if missing. */
   async function biosUrlFor(kind) {
     revokeBiosUrl();
     const map = await biosMap();
@@ -268,6 +303,7 @@
     if (kind === "gba") entry = map.gba;
     else if (kind === "gbc") entry = map.gbc || map.gb;
     else if (kind === "gb") entry = map.gb || map.gbc;
+    else if (kind === "ps1") entry = map.ps1;
     if (!entry || !entry.handle) return "";
     const file = await entry.handle.getFile();
     biosObjectUrl = URL.createObjectURL(file);
