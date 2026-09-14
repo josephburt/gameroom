@@ -3,7 +3,21 @@
   "use strict";
 
   const DELAY = 3;
-  const STUN = [{ urls: "stun:stun.l.google.com:19302" }];
+  const STUN = [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" }
+  ];
+
+  function iceServers() {
+    const list = STUN.slice();
+    const extra = g.GAMEROOM_TURN || null;
+    if (!extra) return list;
+    const rows = Array.isArray(extra) ? extra : [extra];
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && rows[i].urls) list.push(rows[i]);
+    }
+    return list;
+  }
 
   let peer = null;
   let conn = null;
@@ -34,7 +48,7 @@
       return Promise.reject(new Error("Netplay library failed to load"));
     }
     return new Promise(function (resolve, reject) {
-      const p = new g.Peer(id, { debug: 0, config: { iceServers: STUN } });
+      const p = new g.Peer(id, { debug: 0, config: { iceServers: iceServers() } });
       const t = setTimeout(function () {
         try { p.destroy(); } catch (e) {}
         reject(new Error("Could not reach the signaling server"));

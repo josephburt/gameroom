@@ -93,3 +93,31 @@ describe("GrokRom PS1 disc-set helpers", () => {
     assert.equal(out[1].name, "other.nes");
   });
 });
+
+describe("GrokRom N64 / NDS / CHD", () => {
+  it("detects N64 / NDS extensions", () => {
+    const empty = new Uint8Array(16);
+    assert.equal(GrokRom.detect(empty, "Mario64.z64"), "n64");
+    assert.equal(GrokRom.detect(empty, "Mario64.n64"), "n64");
+    assert.equal(GrokRom.detect(empty, "Mario.nds"), "nds");
+  });
+
+  it("detects N64 magic", () => {
+    const bytes = new Uint8Array(0x40);
+    bytes[0] = 0x80; bytes[1] = 0x37; bytes[2] = 0x12; bytes[3] = 0x40;
+    assert.equal(GrokRom.isN64(bytes), true);
+    assert.equal(GrokRom.detect(bytes, "cart.bin"), "n64");
+  });
+
+  it("flags CHD as PlayStation by default (unsupported at runtime)", () => {
+    const empty = new Uint8Array(16);
+    assert.equal(GrokRom.detect(empty, "Crash.chd"), "ps1");
+    assert.equal(GrokRom.detect(empty, "Panzer.chd", "saturn"), "saturn");
+  });
+
+  it("labels new systems", () => {
+    assert.equal(GrokRom.systemLabel("n64"), "Nintendo 64");
+    assert.equal(GrokRom.systemLabel("saturn"), "Sega Saturn");
+    assert.equal(GrokRom.systemLabel("nds"), "Nintendo DS");
+  });
+});

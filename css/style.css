@@ -48,6 +48,9 @@
   --sys-gba: #6b8afd;
   --sys-genesis: #1aa3ff;
   --sys-ps1: #c0c0c0;
+  --sys-n64: #16a34a;
+  --sys-saturn: #f59e0b;
+  --sys-nds: #38bdf8;
 }
 
 body[data-system="gb"] {
@@ -73,6 +76,18 @@ body[data-system="genesis"] {
 body[data-system="ps1"] {
   --accent: #a8a8a8;
   --accent2: #e5e5e5;
+}
+body[data-system="n64"] {
+  --accent: #16a34a;
+  --accent2: #86efac;
+}
+body[data-system="saturn"] {
+  --accent: #f59e0b;
+  --accent2: #fcd34d;
+}
+body[data-system="nds"] {
+  --accent: #0ea5e9;
+  --accent2: #7dd3fc;
 }
 
 * { box-sizing: border-box; }
@@ -392,6 +407,9 @@ body.view-home {
 .sys-card[data-sys="gba"] { --card-accent: var(--sys-gba); }
 .sys-card[data-sys="genesis"] { --card-accent: var(--sys-genesis); }
 .sys-card[data-sys="ps1"] { --card-accent: var(--sys-ps1); }
+.sys-card[data-sys="n64"] { --card-accent: var(--sys-n64); }
+.sys-card[data-sys="saturn"] { --card-accent: var(--sys-saturn); }
+.sys-card[data-sys="nds"] { --card-accent: var(--sys-nds); }
 .sys-card.is-soon { --card-accent: #64748b; }
 
 .home-actions {

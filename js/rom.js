@@ -9,13 +9,18 @@
     sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1,
     gba: 1, agb: 1, mb: 1,
     md: 1, gen: 1, smd: 1, bin: 1,
-    cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1
+    cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1,
+    n64: 1, z64: 1, v64: 1,
+    nds: 1,
+    chd: 1
   };
   const SNES_EXT = { sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1 };
   const GBA_EXT = { gba: 1, agb: 1, mb: 1 };
   const GEN_EXT = { md: 1, gen: 1, smd: 1 };
+  const N64_EXT = { n64: 1, z64: 1, v64: 1 };
   /* Clear PS1 containers / dumps. .bin alone is ambiguous with Genesis — only via prefer. */
   const PS1_EXT = { cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1 };
+  const SATURN_EXT = { cue: 1, iso: 1, mds: 1, ccd: 1, chd: 1 };
 
   function extOf(name) {
     const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
@@ -114,6 +119,24 @@
       bytes[0] === 0x00 && bytes[1] === 0x50 && bytes[2] === 0x42 && bytes[3] === 0x50;
   }
 
+  function isN64(bytes) {
+    if (!bytes || bytes.length < 0x40) return false;
+    const b0 = bytes[0];
+    const b1 = bytes[1];
+    const b2 = bytes[2];
+    const b3 = bytes[3];
+    /* .z64 big-endian, .n64 little, .v64 byte-swapped */
+    return (b0 === 0x80 && b1 === 0x37 && b2 === 0x12 && b3 === 0x40) ||
+      (b0 === 0x37 && b1 === 0x80 && b2 === 0x40 && b3 === 0x12) ||
+      (b0 === 0x40 && b1 === 0x12 && b2 === 0x37 && b3 === 0x80);
+  }
+
+  function isNds(bytes) {
+    if (!bytes || bytes.length < 0x200) return false;
+    /* Nintendo logo CRC check bytes commonly present in retail dumps */
+    return bytes[0x15c] === 0x56 && bytes[0x15d] === 0xcf && bytes[0x15e] === 0xa3 && bytes[0x15f] === 0x3e;
+  }
+
   function skipJunk(bytes) {
     if (bytes.length > 528 && isNes(bytes.subarray(512))) return bytes.subarray(512);
     if (bytes.length > 512 + 0x150 && isGb(bytes.subarray(512))) return bytes.subarray(512);
@@ -137,6 +160,8 @@
     if (isGb(bytes)) return bytes[0x143] === 0xc0 || bytes[0x143] === 0x80 ? "gbc" : "gb";
     if (isSnes(bytes)) return "snes";
     if (isPbp(bytes)) return "ps1";
+    if (isN64(bytes)) return "n64";
+    if (isNds(bytes)) return "nds";
     if (isGenesis(bytes)) return "genesis";
     const ext = extOf(name);
     if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "nes";
@@ -145,6 +170,14 @@
     if (GBA_EXT[ext]) return "gba";
     if (SNES_EXT[ext]) return "snes";
     if (GEN_EXT[ext]) return "genesis";
+    if (N64_EXT[ext]) return "n64";
+    if (ext === "nds") return "nds";
+    if (ext === "chd") {
+      if (prefer === "saturn") return "saturn";
+      if (prefer === "ps1") return "ps1";
+      return "ps1";
+    }
+    if (prefer === "saturn" && (SATURN_EXT[ext] || ext === "bin")) return "saturn";
     if (PS1_EXT[ext]) return "ps1";
     /* .bin is ambiguous (Genesis vs PS1 track). Only claim PS1 when preferred. */
     if (ext === "bin" && prefer === "ps1") return "ps1";
@@ -265,6 +298,9 @@
     if (kind === "gba") return "Game Boy Advance";
     if (kind === "genesis") return "Sega Genesis";
     if (kind === "ps1") return "PlayStation";
+    if (kind === "n64") return "Nintendo 64";
+    if (kind === "saturn") return "Sega Saturn";
+    if (kind === "nds") return "Nintendo DS";
     if (kind === "gb" || kind === "gbc") return gbLabel(bytes);
     return kind || "ROM";
   }
@@ -321,6 +357,8 @@
     isGba: isGba,
     isGenesis: isGenesis,
     isPbp: isPbp,
+    isN64: isN64,
+    isNds: isNds,
     gbLabel: gbLabel,
     systemLabel: systemLabel,
     prettyName: prettyName,

@@ -130,7 +130,54 @@
         ["Start / Select", "Enter / Shift"],
         ["Turbo", "Hold Tab"]
       ],
-      note: "PS1 needs a BIOS you legally own (prefer scph5501.bin) in an attached BIOS folder. Prefer .pbp, or a .zip that contains the .cue plus its .bin tracks. A lone .cue file cannot reach companion tracks."
+      note: "PS1 needs a BIOS you legally own (prefer scph5501.bin) in an attached BIOS folder. Prefer .pbp, or a .zip with .cue+.bin tracks. Browser CHD dumps are not supported yet."
+    },
+    n64: {
+      label: "Nintendo 64",
+      accept: ".n64,.N64,.z64,.Z64,.v64,.V64,.zip,.ZIP",
+      meter: "System",
+      core: "n64",
+      keys: [
+        ["Stick / D-Pad", "Arrow keys / WASD"],
+        ["A / B", "X / Z"],
+        ["C-buttons", "I J K L (via emulator map)"],
+        ["L / R / Z", "Q / E / C"],
+        ["Start", "Enter"],
+        ["Turbo", "Hold Tab"]
+      ],
+      note: "N64 uses EmulatorJS mupen64plus_next (core id n64). No console BIOS is required. First load fetches a large WASM core — give it a moment."
+    },
+    saturn: {
+      label: "Sega Saturn",
+      accept: ".iso,.ISO,.cue,.CUE,.bin,.BIN,.zip,.ZIP",
+      meter: "System",
+      core: "segaSaturn",
+      needsBios: true,
+      keys: [
+        ["D-Pad", "Arrow keys / WASD"],
+        ["A / B / C", "Z / X / C"],
+        ["X / Y / Z", "A / S / D (via emulator map)"],
+        ["L / R", "Q / E"],
+        ["Start", "Enter"],
+        ["Turbo", "Hold Tab"]
+      ],
+      note: "Saturn needs saturn_bios.bin (preferred) in your BIOS folder. Prefer .iso or a .zip with .cue+.bin. Yabause compatibility varies by title."
+    },
+    nds: {
+      label: "Nintendo DS",
+      accept: ".nds,.NDS,.zip,.ZIP",
+      meter: "System",
+      core: "nds",
+      needsBios: true,
+      keys: [
+        ["D-Pad", "Arrow keys / WASD"],
+        ["A / B / X / Y", "X / Z / V / C"],
+        ["L / R", "Q / E"],
+        ["Start / Select", "Enter / Shift"],
+        ["Touch", "Mouse on the lower screen"],
+        ["Turbo", "Hold Tab"]
+      ],
+      note: "DS (melonDS) needs bios7.bin, bios9.bin, and firmware.bin in your BIOS folder — GameRoom packs them automatically when all three are present."
     }
   };
 
@@ -285,7 +332,10 @@
     });
   }
 
-  function isEjs(sys) { return sys === "gb" || sys === "gbc" || sys === "snes" || sys === "gba" || sys === "genesis" || sys === "ps1"; }
+  function isEjs(sys) {
+    return sys === "gb" || sys === "gbc" || sys === "snes" || sys === "gba" ||
+      sys === "genesis" || sys === "ps1" || sys === "n64" || sys === "saturn" || sys === "nds";
+  }
 
   function renderKeys(sys) {
     const spec = SYSTEMS[sys] || SYSTEMS.nes;
@@ -325,7 +375,10 @@
     gbc: "Load a .gbc / .gb ROM — or drop one here.",
     gba: "Load a .gba ROM. BIOS is optional — attach a BIOS folder if you own gba_bios.bin.",
     genesis: "Load a .md / .gen / .smd ROM — the core fetches on first play.",
-    ps1: "Load a .pbp, or a .zip with .cue+.bin tracks. Attach a BIOS folder with scph5501.bin first — PS1 will not start without it."
+    ps1: "Load a .pbp, or a .zip with .cue+.bin tracks. Attach a BIOS folder with scph5501.bin first — PS1 will not start without it.",
+    n64: "Load a .z64 / .n64 / .v64 ROM. No BIOS required — first load fetches a large core.",
+    saturn: "Load a .iso or .cue set. Attach saturn_bios.bin first — Saturn will not start without it.",
+    nds: "Load a .nds ROM. Attach bios7.bin, bios9.bin, and firmware.bin first — DS will not start without all three."
   };
 
   function updateDeck(sys, opts) {
@@ -448,13 +501,26 @@
     setPlayingUi(title, GrokRom.systemLabel(kind, bytes));
     $("fps").textContent = spec.label;
     running = true;
-    showBoot(title, spec.label, kind === "ps1"
-      ? "Loading the PlayStation core. A BIOS from your folder is required."
-      : "Loading the " + spec.label + " core. First time can take a bit — Super FX games like Star Fox need it.");
+    const ext = GrokRom.extOf(name);
+    if (ext === "chd") {
+      hideBoot();
+      running = false;
+      setHint("CHD dumps aren’t supported in the browser yet. Use a .pbp, .iso, or a .zip with .cue+.bin tracks.");
+      updateDeck(kind, {});
+      return;
+    }
+    const bootMsg = ({
+      ps1: "Loading the PlayStation core. A BIOS from your folder is required.",
+      saturn: "Loading the Saturn core. saturn_bios.bin is required.",
+      nds: "Loading the Nintendo DS core. bios7/bios9/firmware are required.",
+      n64: "Loading the Nintendo 64 core. First load fetches a large WASM build."
+    })[kind] || ("Loading the " + spec.label + " core. First time can take a bit.");
+    showBoot(title, spec.label, bootMsg);
     let biosUrl = "";
     let biosName = "";
+    const biosKinds = { gba: 1, gb: 1, gbc: 1, ps1: 1, saturn: 1, nds: 1 };
     try {
-      if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc" || kind === "ps1")) {
+      if (GrokFolders && biosKinds[kind]) {
         const info = await GrokFolders.biosFor(kind);
         if (info) {
           biosUrl = info.url || "";
@@ -465,28 +531,35 @@
       biosUrl = "";
       biosName = "";
     }
-    if (kind === "ps1" && !biosUrl) {
+    if (spec.needsBios && !biosUrl) {
       hideBoot();
       running = false;
-      setHint("PlayStation needs a BIOS. Attach a BIOS folder with scph5501.bin (or another SCPH dump you own), then load the game again.");
-      updateDeck("ps1", {});
+      const need = ({
+        ps1: "PlayStation needs a BIOS (prefer scph5501.bin).",
+        saturn: "Saturn needs saturn_bios.bin in your BIOS folder.",
+        nds: "Nintendo DS needs bios7.bin, bios9.bin, and firmware.bin in your BIOS folder."
+      })[kind] || (spec.label + " needs a BIOS.");
+      setHint(need + " Attach the folder, then load the game again.");
+      updateDeck(kind, {});
       return;
     }
-    const ext = GrokRom.extOf(name);
     if (kind === "ps1" && ext === "cue") {
       setHint("This is a lone .cue — companion .bin tracks won’t load. Prefer a .pbp, or a .zip that contains the .cue and its tracks.");
-    } else if (kind === "ps1" && biosName) {
+    } else if (biosName) {
       setHint("Using BIOS “" + biosName + "”.");
     }
-    if (kind === "ps1" && biosName) {
-      showBoot(title, spec.label, "BIOS: " + biosName + " · loading PlayStation core…");
+    if (biosName) {
+      showBoot(title, spec.label, "BIOS: " + biosName + " · loading " + spec.label + " core…");
     }
     await GrokEjs.start(bytes, name, {
       muted: muted,
       volume: volume,
       core: spec.core,
       biosUrl: biosUrl,
-      color: ({ snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa", ps1: "#c0c0c0" })[kind] || "#ff3b4e",
+      color: ({
+        snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa",
+        ps1: "#c0c0c0", n64: "#16a34a", saturn: "#f59e0b", nds: "#38bdf8"
+      })[kind] || "#ff3b4e",
       gameId: currentRom.id,
       onStart: function () {
         hideBoot();
@@ -494,7 +567,7 @@
         GrokEjs.setVolume(volume, muted);
         rememberCurrent();
         scheduleShot();
-        if (kind === "ps1" && biosName) setHint("Playing with BIOS “" + biosName + "”.");
+        if (biosName) setHint("Playing with BIOS “" + biosName + "”.");
       }
     });
   }
@@ -503,7 +576,8 @@
     if (rom.kind === "nes") loadNes(rom.bytes, rom.name);
     else if (isEjs(rom.kind)) {
       return loadEjs(rom.bytes, rom.name, rom.kind);
-    }     else throw new Error("Unsupported ROM — Phase 1 supports NES, SNES, GB, GBC, GBA, Genesis, and PlayStation");
+    }
+    else throw new Error("Unsupported ROM — supported: NES, SNES, GB, GBC, GBA, Genesis, PlayStation, N64, Saturn, DS");
   }
 
   function pickZipRom(roms) {
@@ -541,9 +615,10 @@
     try {
       setHint("Reading “" + (name || "ROM") + "”…");
       showPlay();
-      const roms = await GrokRom.listRoms(bytes, name, { prefer: system === "ps1" ? "ps1" : "" });
+      const prefer = (system === "ps1" || system === "saturn") ? system : "";
+      const roms = await GrokRom.listRoms(bytes, name, { prefer: prefer });
       if (!roms.length) {
-        throw new Error("No supported ROM found (NES / SNES / GB / GBC / GBA / Genesis / PS1). If this is a zip, re-zip as .zip (not 7z/RAR). Prefer .pbp for PlayStation.");
+        throw new Error("No supported ROM found. If this is a zip, re-zip as .zip (not 7z/RAR). PlayStation CHD dumps need conversion to .pbp or cue+bin.");
       }
       let rom = roms[0];
       if (roms.length > 1) {
@@ -783,7 +858,7 @@
   $("btn-reset").onclick = reset;
   $("btn-load").onclick = openFile;
   $("btn-load-home").onclick = function () {
-    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP";
+    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.n64,.N64,.z64,.Z64,.v64,.V64,.nds,.NDS,.zip,.ZIP";
     openFile();
   };
   $("file").onchange = function (e) {
@@ -1115,6 +1190,9 @@
     if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return "SNES";
     if (ext === "md" || ext === "gen" || ext === "smd") return "Genesis";
     if (ext === "pbp" || ext === "cue" || ext === "iso" || ext === "bin") return "PS1";
+    if (ext === "n64" || ext === "z64" || ext === "v64") return "N64";
+    if (ext === "nds") return "NDS";
+    if (ext === "chd") return "CHD";
     if (ext === "zip") return "ZIP";
     return ext.toUpperCase();
   }
@@ -1148,7 +1226,7 @@
     }
     try {
       const files = await GrokFolders.listBiosFiles();
-      const labels = { gba: "GBA", gb: "GB", gbc: "GBC", sgb: "SGB", ps1: "PlayStation" };
+      const labels = { gba: "GBA", gb: "GB", gbc: "GBC", sgb: "SGB", ps1: "PlayStation", saturn: "Saturn", nds: "Nintendo DS" };
       const preferred = files.filter(function (f) { return f.preferred; }).length;
       status.textContent = "Folder: " + (handle.name || "BIOS") + " · " +
         (files.length

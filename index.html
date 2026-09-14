@@ -12,17 +12,17 @@
   <link rel="canonical" href="https://gameroom.burtlabs.org/" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gameroom.burtlabs.org/" />
-  <meta property="og:title" content="Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis" />
-  <meta property="og:description" content="Teen-bedroom browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
+  <meta property="og:title" content="Burt Labs GameRoom — multi-system browser emulator" />
+  <meta property="og:description" content="Teen-bedroom browser emulator for NES, SNES, GB, GBA, Genesis, PS1, N64, Saturn, and DS. Load a ROM you own." />
   <meta property="og:image" content="https://gameroom.burtlabs.org/icons/icon-512.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:site_name" content="Burt Labs GameRoom" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis" />
-  <meta name="twitter:description" content="Teen-bedroom browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own." />
+  <meta name="twitter:title" content="Burt Labs GameRoom — multi-system browser emulator" />
+  <meta name="twitter:description" content="Teen-bedroom browser emulator for NES, SNES, GB, GBA, Genesis, PS1, N64, Saturn, and DS. Load a ROM you own." />
   <meta name="twitter:image" content="https://gameroom.burtlabs.org/icons/icon-512.png" />
-  <title>Burt Labs GameRoom — NES · SNES · GB · GBA · Genesis</title>
+  <title>Burt Labs GameRoom — multi-system browser emulator</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
@@ -42,7 +42,7 @@
       </button>
       <div class="brand-text">
         <h1>Burt Labs GameRoom</h1>
-        <span class="tag">Browser emulator · NES · SNES · GB · GBA · Genesis</span>
+        <span class="tag">Browser emulator · NES · SNES · GB · GBA · Genesis · PS1 · N64 · Saturn · DS</span>
       </div>
     </div>
     <div class="top-links" aria-label="Resources">
@@ -84,7 +84,7 @@
       </nav>
       <div class="side-nav-status">
         <p class="side-tip"><span aria-hidden="true">💡</span> Load a ROM or pick a console to get started.</p>
-        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v24</span></p>
+        <p class="side-ready"><span class="dot on" aria-hidden="true"></span> Ready <span class="side-ver">gameroom-v25</span></p>
       </div>
     </aside>
 
@@ -116,13 +116,17 @@
             <svg class="hotspot-sil" viewBox="0 0 120 80" preserveAspectRatio="none" aria-hidden="true"><path d="M14,40 C14,20 106,20 106,40 L110,66 C110,76 10,76 10,66 Z M42,24 C42,10 78,10 78,24"/></svg>
             <span class="hotspot-label">Genesis — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot is-soon" style="--x:49.2%;--y:53%;--w:10%;--h:12%" data-soon="n64" role="listitem" aria-label="N64 — coming soon" aria-disabled="true" tabindex="-1">
+          <button type="button" class="sys-card hotspot" style="--x:49.2%;--y:53%;--w:10%;--h:12%" data-sys="n64" role="listitem" aria-label="N64 — click to play" data-tip="N64 — click to play">
+            <svg class="hotspot-sil" viewBox="0 0 120 90" preserveAspectRatio="none" aria-hidden="true"><path d="M20,30 C20,12 100,12 100,30 L108,70 C108,82 12,82 12,70 Z M48,18 C48,6 72,6 72,18"/></svg>
+            <span class="hotspot-label">N64 — click to play</span>
           </button>
           <button type="button" class="sys-card hotspot" style="--x:61%;--y:55%;--w:11.2%;--h:9.5%" data-sys="ps1" role="listitem" aria-label="PlayStation — click to play" data-tip="PlayStation — needs BIOS + ROM">
             <svg class="hotspot-sil" viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true"><path d="M18,28 C40,14 80,14 102,28 L108,52 C86,66 34,66 12,52 Z"/></svg>
             <span class="hotspot-label">PS1 — needs BIOS</span>
           </button>
-          <button type="button" class="sys-card hotspot is-soon" style="--x:73.6%;--y:53.5%;--w:11.6%;--h:10.5%" data-soon="saturn" role="listitem" aria-label="Sega Saturn — coming soon" aria-disabled="true" tabindex="-1">
+          <button type="button" class="sys-card hotspot" style="--x:73.6%;--y:53.5%;--w:11.6%;--h:10.5%" data-sys="saturn" role="listitem" aria-label="Sega Saturn — click to play" data-tip="Saturn — needs BIOS">
+            <svg class="hotspot-sil" viewBox="0 0 120 80" preserveAspectRatio="none" aria-hidden="true"><path d="M16,36 C16,18 104,18 104,36 L110,64 C110,74 10,74 10,64 Z"/></svg>
+            <span class="hotspot-label">Saturn — needs BIOS</span>
           </button>
 
           <!-- Bottom shelf: handhelds — Game Boy / Game Boy Color (live), Nintendo DS (coming soon) -->
@@ -134,7 +138,9 @@
             <svg class="hotspot-sil" viewBox="0 0 70 110" preserveAspectRatio="none" aria-hidden="true"><path d="M16,8 H54 Q62,8 62,18 V94 Q62,104 52,104 H18 Q8,104 8,94 V18 Q8,8 16,8 Z"/></svg>
             <span class="hotspot-label">GBC — click to play</span>
           </button>
-          <button type="button" class="sys-card hotspot hotspot--hand is-soon" style="--x:41.4%;--y:69%;--w:8.6%;--h:11%" data-soon="nds" role="listitem" aria-label="Nintendo DS — coming soon" aria-disabled="true" tabindex="-1">
+          <button type="button" class="sys-card hotspot hotspot--hand" style="--x:41.4%;--y:69%;--w:8.6%;--h:11%" data-sys="nds" role="listitem" aria-label="Nintendo DS — click to play" data-tip="DS — needs BIOS pack">
+            <svg class="hotspot-sil" viewBox="0 0 90 110" preserveAspectRatio="none" aria-hidden="true"><path d="M14,8 H76 Q84,8 84,18 V50 H6 V18 Q6,8 14,8 Z M6,58 H84 V94 Q84,104 74,104 H16 Q6,104 6,94 Z"/></svg>
+            <span class="hotspot-label">DS — needs BIOS</span>
           </button>
         </div>
       </div>
@@ -253,7 +259,7 @@
         <label class="vol" for="vol">Volume
           <input type="range" id="vol" min="0" max="100" value="70" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" />
         </label>
-        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP" hidden />
+        <input type="file" id="file" accept=".nes,.NES,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.n64,.N64,.z64,.Z64,.v64,.V64,.nds,.NDS,.zip,.ZIP" hidden />
 
         <div class="meter">
           <span id="meter-label">Mapper</span>
@@ -277,7 +283,7 @@
   </main>
 
   <footer>
-    <span class="foot-systems">Burt Labs GameRoom · NES · SNES · GB · GBA · Genesis</span>
+    <span class="foot-systems">Burt Labs GameRoom · NES · SNES · GB · GBA · Genesis · PS1 · N64 · Saturn · DS</span>
     <a class="foot-host" href="https://gameroom.burtlabs.org">gameroom.burtlabs.org</a>
   </footer>
 
@@ -335,8 +341,8 @@
   <dialog id="bios-dlg">
     <div class="drive-form">
       <h2>BIOS / system files</h2>
-      <p>Optional for GBA / GB / GBC. <strong>Required for PlayStation.</strong> Point at a folder of BIOS files you legally own (for example <code>gba_bios.bin</code> or <code>scph5501.bin</code>). Nothing is uploaded or committed — files stay on your machine and are read only when a matching EmulatorJS core starts.</p>
-      <p class="note">When several PlayStation BIOS dumps are present, GameRoom prefers <code>scph5501.bin</code> (US), then other SCPH names. The preferred file is marked below. GBA / GB / GBC BIOS remain optional.</p>
+      <p>Optional for GBA / GB / GBC. <strong>Required for PlayStation, Saturn, and Nintendo DS.</strong> Point at a folder of BIOS files you legally own. Zips inside the folder are scanned for known names (for example <code>gba_bios.bin</code>, <code>scph5501.bin</code>, <code>saturn_bios.bin</code>, or DS <code>bios7.bin</code> / <code>bios9.bin</code> / <code>firmware.bin</code>). Nothing is uploaded.</p>
+      <p class="note">PlayStation prefers <code>scph5501.bin</code>. Saturn prefers <code>saturn_bios.bin</code>. DS needs all three melonDS files — GameRoom packs them when present. N64 needs no BIOS.</p>
       <p class="note" id="bios-status">No BIOS folder attached.</p>
       <ul id="bios-list" class="zip-list"></ul>
       <div class="btn-row">
@@ -406,7 +412,7 @@
   <dialog id="about-dlg">
     <div class="drive-form">
       <h2>About Burt Labs GameRoom</h2>
-      <p>Teen-bedroom browser emulator for NES (custom core), SNES, Game Boy, GBC, GBA, and Genesis (EmulatorJS). Load ROMs you own from disk or Google Drive.</p>
+      <p>Teen-bedroom browser emulator for NES (custom core) plus SNES, GB, GBC, GBA, Genesis, PlayStation, N64, Saturn, and DS via EmulatorJS. Load ROMs you own from disk or Google Drive.</p>
       <p class="note">Hosted at <a href="https://gameroom.burtlabs.org">gameroom.burtlabs.org</a>. No commercial ROMs or BIOS files are bundled.</p>
       <p class="note">If you’d like to support development, donate via <a href="https://account.venmo.com/u/josephburt" target="_blank" rel="noopener noreferrer">Venmo</a>.</p>
       <div class="btn-row">
@@ -418,8 +424,8 @@
   <dialog id="cheats-dlg">
     <div class="drive-form">
       <h2>Cheats</h2>
-      <p>Cheat codes are not wired yet — this panel is a stub so the bedroom nav matches the north-star mock.</p>
-      <p class="note">Coming in a later pass. For now, play fair (or edit RAM yourself).</p>
+      <p>Cheat codes are not wired yet — this panel stays as a stub so nav matches the bedroom mock.</p>
+      <p class="note">Planned: per-game Game Genie / Pro Action Replay style lists stored in this browser only. No codes ship with GameRoom.</p>
       <div class="btn-row">
         <button type="button" id="cheats-close" class="btn primary">Close</button>
       </div>
@@ -432,6 +438,7 @@
       <p>In-play controls (CRT filter, touch pad, volume, save states) live on the emulator side panel after you load a ROM.</p>
       <label class="chk"><input type="checkbox" id="chk-crt-home" checked /> Prefer CRT filter when playing</label>
       <label class="chk"><input type="checkbox" id="chk-touch-home" /> Prefer on-screen touch pad</label>
+      <p class="note">Desktop-first: on phones, rotate to landscape and enable the touch pad. Netplay uses STUN by default; optional TURN can be set via <code>window.GAMEROOM_TURN</code> (ICE server object or array).</p>
       <div class="btn-row">
         <button type="button" id="settings-home-close" class="btn primary">Done</button>
       </div>

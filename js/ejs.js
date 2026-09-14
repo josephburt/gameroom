@@ -7,6 +7,17 @@
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" }
   ];
+
+  function iceServers() {
+    const extra = g.GAMEROOM_TURN || (g.GrokDriveConfig && g.GrokDriveConfig.turn) || null;
+    if (!extra) return ICE.slice();
+    const list = ICE.slice();
+    const rows = Array.isArray(extra) ? extra : [extra];
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && rows[i].urls) list.push(rows[i]);
+    }
+    return list;
+  }
   let scriptLoaded = false;
   let scriptLoading = null;
 
@@ -30,6 +41,19 @@
           ext === "cbn" || ext === "mdf" || ext === "zip") return name;
       return (name || "game") + ".pbp";
     }
+    if (core === "n64") {
+      if (ext === "n64" || ext === "z64" || ext === "v64" || ext === "zip") return name;
+      return (name || "game") + ".z64";
+    }
+    if (core === "segaSaturn") {
+      if (ext === "cue" || ext === "iso" || ext === "bin" || ext === "zip" ||
+          ext === "mds" || ext === "ccd") return name;
+      return (name || "game") + ".iso";
+    }
+    if (core === "nds") {
+      if (ext === "nds" || ext === "zip") return name;
+      return (name || "game") + ".nds";
+    }
     if (ext === "gb" || ext === "gbc" || ext === "dmg" || ext === "sgb") return name;
     return (name || "game") + ".gb";
   }
@@ -39,6 +63,9 @@
     if (core === "gba") return "gba";
     if (core === "segaMD") return "segaMD";
     if (core === "psx") return "psx";
+    if (core === "n64") return "n64";
+    if (core === "segaSaturn") return "segaSaturn";
+    if (core === "nds") return "nds";
     return "gb";
   }
 
@@ -82,7 +109,7 @@
     g.EJS_browserMode = "desktop";
     g.EJS_defaultControls = defaultControls();
     g.EJS_netplayServer = "https://netplay.emulatorjs.org/";
-    g.EJS_netplayICEServers = ICE;
+    g.EJS_netplayICEServers = iceServers();
     g.EJS_defaultOptions = {
       "save-state-location": "browser",
       rewind: true
