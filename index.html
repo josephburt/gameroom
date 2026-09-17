@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0c12" />
+  <meta name="theme-color" content="#070708" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -25,109 +25,78 @@
   <title>Burt Labs GameRoom — NES · SNES · GB · GBC · GBA · N64</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Tektur:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/premium.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 </head>
 <body class="page-home view-home">
   <a class="skip-link" href="#home">Skip to game room</a>
-  <div class="scanline-overlay" aria-hidden="true"></div>
   <div id="desktop-banner" class="desktop-banner" role="note" hidden>
-    <span class="desktop-banner-txt"><strong>Best on desktop.</strong> The shelf and emulator are tuned for a full desktop web browser.</span>
+    <span class="desktop-banner-txt"><strong>Desktop preferred.</strong> Full browser for the rack and emulator.</span>
     <button type="button" id="desktop-banner-x" class="desktop-banner-x" aria-label="Dismiss">×</button>
   </div>
+
   <header class="topbar">
     <div class="brand">
       <a class="logo-btn" href="index.html" title="Game room" aria-label="Game room">
         <span class="logo-mark" aria-hidden="true"></span>
       </a>
       <div class="brand-text">
-        <h1>Burt Labs GameRoom</h1>
-        <span class="tag">NES · SNES · GB · GBC · GBA · N64</span>
+        <span class="brand-mark">Burt Labs</span>
+        <span class="tag">GameRoom</span>
       </div>
     </div>
-    <div class="top-links" aria-label="Resources">
+    <nav class="top-links" aria-label="Resources">
       <a class="top-link" href="https://github.com/josephburt/gameroom" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a class="top-link" href="https://github.com/josephburt/gameroom#readme" target="_blank" rel="noopener noreferrer">Docs</a>
       <button type="button" class="top-link top-link-btn" id="btn-about-top">About</button>
-    </div>
+    </nav>
   </header>
 
   <section id="home" class="home" aria-label="Game room">
-    <p class="home-eyebrow">Late night · living room</p>
-    <p class="home-lead">The set is warm. Pick a console from the cabinet — each one opens its own library so you can load a ROM you own.</p>
+    <div class="home-hero">
+      <p class="home-eyebrow">Local · offline-capable · six systems</p>
+      <h1 class="home-title">Burt Labs<br /><em>GameRoom</em></h1>
+      <p class="home-lead">Select a platform. Load a ROM you own. Nothing leaves this machine except optional Drive downloads into this tab.</p>
+    </div>
 
-    <div class="room" aria-label="Television and console shelf">
-      <div class="room-sky" aria-hidden="true"></div>
-      <div class="room-wall" aria-hidden="true">
-        <div class="wall-stripe"></div>
-        <div class="poster poster-a"><span>PLAYER 1</span></div>
-        <div class="poster poster-b"><span>16-BIT</span></div>
-        <div class="poster poster-c"><span>INSERT COIN</span></div>
-        <div class="poster poster-d"><span>HIGH SCORE</span></div>
-      </div>
-      <div class="room-lamp" aria-hidden="true">
-        <div class="lamp-shade"></div>
-        <div class="lamp-stem"></div>
-        <div class="lamp-glow"></div>
-      </div>
-      <div class="room-window" aria-hidden="true">
-        <div class="window-pane"></div>
-        <div class="window-blinds"></div>
-      </div>
-      <div class="lava-lamp" aria-hidden="true">
-        <div class="lava-cap"></div>
-        <div class="lava-glass">
-          <i class="blob b1"></i>
-          <i class="blob b2"></i>
-          <i class="blob b3"></i>
-        </div>
-        <div class="lava-base"></div>
-      </div>
-      <div class="room-glow" aria-hidden="true"></div>
+    <div class="room" aria-label="Display and platform rack">
+      <div class="room-ambient" aria-hidden="true"></div>
 
       <div class="room-stage">
         <div class="room-tv" id="room-tv">
-          <div class="tv-stand-top" aria-hidden="true"></div>
           <div class="room-tv-chassis">
-            <div class="crt-speakers" aria-hidden="true">
-              <span></span><span></span><span></span>
-            </div>
             <div class="room-tv-screen" id="room-tv-screen" data-signal="off">
               <div class="no-signal" id="no-signal">
-                <span class="no-signal-snow" aria-hidden="true"></span>
                 <span class="no-signal-scan" aria-hidden="true"></span>
-                <strong>NO SIGNAL</strong>
-                <span class="no-signal-sub" id="room-tv-sub">AV-1 · pick a console</span>
+                <span class="no-signal-meta">AV-1</span>
+                <strong>STANDBY</strong>
+                <span class="no-signal-sub" id="room-tv-sub">Awaiting platform</span>
               </div>
             </div>
             <div class="room-tv-ledge">
               <span class="room-tv-brand">BURT LABS</span>
-              <span class="room-tv-knobs" aria-hidden="true"><i></i><i></i></span>
               <span class="room-tv-led" aria-hidden="true"></span>
             </div>
           </div>
-          <div class="tv-feet" aria-hidden="true"><i></i><i></i></div>
         </div>
 
         <div class="entertainment-center">
-          <div class="ec-wood ec-top" aria-hidden="true"></div>
+          <div class="rack-rail" aria-hidden="true"></div>
           <div class="ec-cabinet">
             <div class="shelf-bay shelf-bay-upper">
-              <div class="shelf-label">Home consoles</div>
+              <div class="shelf-label"><span>01</span> Home consoles</div>
               <div class="sys-grid shelf-grid shelf-grid-live">
                 <a class="sys-card console-card" data-sys="nes" href="play.html?sys=nes" aria-label="NES — open library">
                   <span class="console-art console-nes" aria-hidden="true">
                     <svg class="console-sil" viewBox="0 0 160 48" fill="none">
-                      <rect x="4" y="12" width="152" height="26" rx="3" fill="#d8d0c4"/>
-                      <rect x="4" y="12" width="26" height="26" rx="3" fill="#c23b3b"/>
-                      <rect x="4" y="12" width="8" height="26" fill="#9a2a2a"/>
-                      <rect x="46" y="20" width="68" height="8" rx="1.5" fill="#1a1a1a"/>
-                      <circle cx="130" cy="25" r="3.4" fill="#2f8a3a"/>
-                      <rect x="140" y="21" width="9" height="8" rx="1" fill="#2a2a2a"/>
-                      <rect x="10" y="36" width="140" height="3" rx="1" fill="#b4aca0"/>
+                      <rect x="4" y="12" width="152" height="26" rx="2" fill="currentColor" opacity="0.92"/>
+                      <rect x="4" y="12" width="24" height="26" rx="2" fill="currentColor" opacity="0.55"/>
+                      <rect x="46" y="20" width="68" height="8" rx="1" fill="#070708"/>
+                      <circle cx="130" cy="25" r="3" fill="#070708"/>
                     </svg>
                   </span>
                   <span class="sys-kicker">8-bit</span>
@@ -137,12 +106,10 @@
                 <a class="sys-card console-card" data-sys="snes" href="play.html?sys=snes" aria-label="Super NES — open library">
                   <span class="console-art console-snes" aria-hidden="true">
                     <svg class="console-sil" viewBox="0 0 160 48" fill="none">
-                      <rect x="6" y="14" width="148" height="24" rx="12" fill="#8b90a8"/>
-                      <rect x="6" y="14" width="148" height="9" rx="12" fill="#6a6f88"/>
-                      <ellipse cx="126" cy="27" rx="16" ry="8" fill="#5c3d8a"/>
-                      <circle cx="34" cy="27" r="4" fill="#c23b3b"/>
-                      <circle cx="46" cy="27" r="4" fill="#d4a017"/>
-                      <rect x="62" y="24" width="30" height="5" rx="2.5" fill="#2a2c38"/>
+                      <rect x="6" y="14" width="148" height="24" rx="10" fill="currentColor" opacity="0.9"/>
+                      <ellipse cx="126" cy="27" rx="14" ry="7" fill="#070708" opacity="0.55"/>
+                      <circle cx="34" cy="27" r="3.5" fill="#070708"/>
+                      <circle cx="46" cy="27" r="3.5" fill="#070708" opacity="0.7"/>
                     </svg>
                   </span>
                   <span class="sys-kicker">16-bit</span>
@@ -152,12 +119,11 @@
                 <a class="sys-card console-card" data-sys="n64" href="play.html?sys=n64" aria-label="Nintendo 64 — open library">
                   <span class="console-art console-n64" aria-hidden="true">
                     <svg class="console-sil" viewBox="0 0 160 52" fill="none">
-                      <rect x="22" y="18" width="116" height="22" rx="11" fill="#2a2c32"/>
-                      <path d="M42 18h76V10a8 8 0 0 0-8-8H50a8 8 0 0 0-8 8v8z" fill="#16181e"/>
-                      <rect x="12" y="20" width="18" height="18" rx="6" fill="#c9a227"/>
-                      <rect x="130" y="20" width="18" height="18" rx="6" fill="#c9a227"/>
-                      <circle cx="80" cy="29" r="6.5" fill="#3d5afe"/>
-                      <circle cx="80" cy="29" r="2.4" fill="#c9d4ff"/>
+                      <rect x="22" y="18" width="116" height="22" rx="10" fill="currentColor" opacity="0.9"/>
+                      <path d="M42 18h76V10a7 7 0 0 0-7-7H49a7 7 0 0 0-7 7v8z" fill="currentColor" opacity="0.55"/>
+                      <rect x="12" y="20" width="16" height="16" rx="5" fill="currentColor" opacity="0.75"/>
+                      <rect x="132" y="20" width="16" height="16" rx="5" fill="currentColor" opacity="0.75"/>
+                      <circle cx="80" cy="29" r="5.5" fill="#070708"/>
                     </svg>
                   </span>
                   <span class="sys-kicker">64-bit</span>
@@ -167,17 +133,16 @@
               </div>
             </div>
             <div class="shelf-bay shelf-bay-lower">
-              <div class="shelf-label">Handhelds</div>
+              <div class="shelf-label"><span>02</span> Handhelds</div>
               <div class="sys-grid shelf-grid shelf-grid-hand">
                 <a class="sys-card console-card" data-sys="gb" href="play.html?sys=gb" aria-label="Game Boy — open library">
                   <span class="console-art console-art--hand console-gb" aria-hidden="true">
                     <svg class="console-sil" viewBox="0 0 48 72" fill="none">
-                      <rect x="8" y="4" width="32" height="64" rx="6" fill="#8bac0f"/>
-                      <rect x="12" y="8" width="24" height="22" rx="2" fill="#1a2410"/>
-                      <rect x="14" y="10" width="20" height="16" rx="1" fill="#9bbc0f"/>
-                      <rect x="14" y="38" width="10" height="10" rx="1" fill="#306230"/>
-                      <circle cx="32" cy="42" r="3.2" fill="#0f380f"/>
-                      <circle cx="28" cy="48" r="3.2" fill="#0f380f"/>
+                      <rect x="8" y="4" width="32" height="64" rx="5" fill="currentColor" opacity="0.9"/>
+                      <rect x="12" y="9" width="24" height="20" rx="2" fill="#070708"/>
+                      <rect x="14" y="38" width="10" height="10" rx="1" fill="#070708"/>
+                      <circle cx="32" cy="42" r="3" fill="#070708"/>
+                      <circle cx="28" cy="48" r="3" fill="#070708" opacity="0.7"/>
                     </svg>
                   </span>
                   <span class="sys-kicker">Handheld</span>
@@ -187,12 +152,11 @@
                 <a class="sys-card console-card" data-sys="gbc" href="play.html?sys=gbc" aria-label="Game Boy Color — open library">
                   <span class="console-art console-art--hand console-gbc" aria-hidden="true">
                     <svg class="console-sil" viewBox="0 0 48 72" fill="none">
-                      <rect x="8" y="4" width="32" height="64" rx="7" fill="#6d28d9"/>
-                      <rect x="12" y="8" width="24" height="22" rx="3" fill="#1e1030"/>
-                      <rect x="14" y="10" width="20" height="16" rx="1.5" fill="#67e8f9"/>
-                      <rect x="14" y="38" width="10" height="10" rx="1" fill="#2e1065"/>
-                      <circle cx="32" cy="42" r="3.2" fill="#ef4444"/>
-                      <circle cx="28" cy="48" r="3.2" fill="#a3e635"/>
+                      <rect x="8" y="4" width="32" height="64" rx="6" fill="currentColor" opacity="0.9"/>
+                      <rect x="12" y="9" width="24" height="20" rx="2.5" fill="#070708"/>
+                      <rect x="14" y="38" width="10" height="10" rx="1" fill="#070708"/>
+                      <circle cx="32" cy="42" r="3" fill="#070708"/>
+                      <circle cx="28" cy="48" r="3" fill="#070708" opacity="0.7"/>
                     </svg>
                   </span>
                   <span class="sys-kicker">Color</span>
@@ -202,12 +166,11 @@
                 <a class="sys-card console-card" data-sys="gba" href="play.html?sys=gba" aria-label="Game Boy Advance — open library">
                   <span class="console-art console-gba" aria-hidden="true">
                     <svg class="console-sil" viewBox="0 0 160 48" fill="none">
-                      <rect x="8" y="10" width="144" height="28" rx="14" fill="#4c63d9"/>
-                      <ellipse cx="80" cy="24" rx="34" ry="12" fill="#0f172a"/>
-                      <ellipse cx="80" cy="24" rx="30" ry="9" fill="#67e8f9"/>
-                      <circle cx="28" cy="24" r="5" fill="#1e293b"/>
-                      <circle cx="132" cy="20" r="4" fill="#ef4444"/>
-                      <circle cx="140" cy="28" r="4" fill="#fbbf24"/>
+                      <rect x="8" y="10" width="144" height="28" rx="12" fill="currentColor" opacity="0.9"/>
+                      <ellipse cx="80" cy="24" rx="32" ry="10" fill="#070708"/>
+                      <circle cx="28" cy="24" r="4.5" fill="#070708"/>
+                      <circle cx="132" cy="20" r="3.5" fill="#070708"/>
+                      <circle cx="140" cy="28" r="3.5" fill="#070708" opacity="0.7"/>
                     </svg>
                   </span>
                   <span class="sys-kicker">Advance</span>
@@ -217,38 +180,36 @@
               </div>
             </div>
           </div>
-          <div class="ec-wood ec-base" aria-hidden="true"></div>
+          <div class="rack-rail rack-rail-base" aria-hidden="true"></div>
         </div>
       </div>
-
-      <div class="room-carpet" aria-hidden="true">
-        <div class="carpet-pattern"></div>
-      </div>
-      <div class="room-floor" aria-hidden="true"></div>
     </div>
 
     <div id="recents-wrap" class="recents-wrap" hidden>
-      <h2>Continue</h2>
+      <div class="section-head">
+        <h2>Continue</h2>
+        <span class="section-meta">Recent sessions on this device</span>
+      </div>
       <div id="recents" class="recents"></div>
     </div>
 
     <div class="home-actions">
       <button type="button" id="btn-install" class="btn" hidden>Install app</button>
     </div>
-    <p class="note home-note">Use ROMs you legally own. Files stay on this device (Drive picks download into this tab only). No commercial games or BIOS files are bundled. If you’d like to support development, donate via <a href="https://account.venmo.com/u/josephburt" target="_blank" rel="noopener noreferrer">Venmo</a>.</p>
+    <p class="note home-note">Use ROMs you legally own. Files stay on this device. No commercial games or BIOS files are bundled. Support via <a href="https://account.venmo.com/u/josephburt" target="_blank" rel="noopener noreferrer">Venmo</a>.</p>
   </section>
 
   <footer>
-    <span class="foot-systems">Burt Labs GameRoom · NES · SNES · GB · GBC · GBA · N64</span>
+    <span class="foot-systems">Burt Labs · NES · SNES · GB · GBC · GBA · N64</span>
     <a class="foot-host" href="https://gameroom.burtlabs.org">gameroom.burtlabs.org</a>
   </footer>
 
   <dialog id="about-dlg">
     <div class="drive-form">
       <h2>About Burt Labs GameRoom</h2>
-      <p>Pick a console on the shelf, then load ROMs you own on that system’s library page. NES uses a custom core; SNES, Game Boy, GBC, GBA, and N64 use EmulatorJS.</p>
+      <p>Select a platform on the rack, then load ROMs you own on that system’s library page. NES uses a custom core; SNES, Game Boy, GBC, GBA, and N64 use EmulatorJS.</p>
       <p class="note">Hosted at <a href="https://gameroom.burtlabs.org">gameroom.burtlabs.org</a>. No commercial ROMs or BIOS files are bundled.</p>
-      <p class="note">If you’d like to support development, donate via <a href="https://account.venmo.com/u/josephburt" target="_blank" rel="noopener noreferrer">Venmo</a>.</p>
+      <p class="note">Support development via <a href="https://account.venmo.com/u/josephburt" target="_blank" rel="noopener noreferrer">Venmo</a>.</p>
       <div class="btn-row">
         <button type="button" id="about-close" class="btn primary">Close</button>
       </div>

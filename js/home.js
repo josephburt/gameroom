@@ -87,13 +87,13 @@
         (spec && spec.color) || "#5dffc0";
       screen.style.setProperty("--tv-accent", accent);
       screen.setAttribute("data-hover", id);
-      if (sub && spec) sub.textContent = spec.label + " · click to load";
+      if (sub && spec) sub.textContent = spec.short + " · select to load";
     }
     function clear() {
       screen.removeAttribute("data-hover");
       screen.style.removeProperty("--tv-accent");
       if (sub && screen.getAttribute("data-signal") !== "standby") {
-        sub.textContent = "AV-1 · pick a console";
+        sub.textContent = "Awaiting platform";
       }
       paintTv();
     }

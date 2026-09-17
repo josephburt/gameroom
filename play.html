@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0c12" />
+  <meta name="theme-color" content="#070708" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -13,27 +13,27 @@
   <title>Library — Burt Labs GameRoom</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Tektur:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/premium.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 </head>
 <body class="page-play" data-system="nes">
   <a class="skip-link" href="#library">Skip to library</a>
-  <div class="scanline-overlay" aria-hidden="true"></div>
   <header class="topbar">
     <div class="brand">
       <a class="logo-btn" href="index.html" title="Back to game room" aria-label="Back to game room">
         <span class="logo-mark" aria-hidden="true"></span>
       </a>
       <div class="brand-text">
-        <h1>Burt Labs GameRoom</h1>
+        <h1 class="brand-mark">Burt Labs</h1>
         <span class="tag" id="play-tag">Library</span>
       </div>
     </div>
     <div class="top-links" aria-label="Resources">
-      <a class="top-link" href="index.html">Room</a>
+      <a class="top-link" href="index.html">Rack</a>
       <a class="top-link" href="https://github.com/josephburt/gameroom" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
     <div class="status" aria-live="polite">
@@ -47,11 +47,11 @@
   <main id="play" aria-label="Library and play">
     <div class="deck-head">
       <div class="deck-head-main">
-        <span class="deck-eyebrow" id="deck-eyebrow">ROM library</span>
+        <span class="deck-eyebrow" id="deck-eyebrow">Platform library</span>
         <h2 class="deck-title" id="deck-title">Super NES</h2>
         <p class="deck-sub" id="deck-sub">Load a ROM to start.</p>
       </div>
-      <a class="btn deck-up" id="btn-deck-up" href="index.html">← Room</a>
+      <a class="btn deck-up" id="btn-deck-up" href="index.html">← Rack</a>
     </div>
 
     <section id="library" class="library-panel" aria-label="ROM library">
