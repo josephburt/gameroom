@@ -1,6 +1,6 @@
 # Burt Labs GameRoom
 
-A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, Sega Genesis, and PlayStation. Play the built-in NES demo, drop in a ROM you legally own, attach a local **Bookshelf** folder (Chromium), or load one from Google Drive.
+A living-room style browser emulator for NES, Super NES, Game Boy, Game Boy Color, Game Boy Advance, and Nintendo 64. Pick a console on the shelf; each one opens its own library page. Play the built-in NES demo, drop in a ROM you legally own, attach a local folder (Chromium), or load one from Google Drive.
 
 **Play it:** [https://gameroom.burtlabs.org](https://gameroom.burtlabs.org)
 
@@ -12,17 +12,14 @@ Installable as a PWA. Recently played games stay in this browser so they come ba
 
 | System | Engine | Extensions | Status |
 |---|---|---|---|
-| NES | Built-in (mappers 0 / 1 / 2 / 3 / 4 / 7) | `.nes` | Phase 1 |
-| Super NES | EmulatorJS / snes9x | `.sfc` `.smc` | Phase 1 |
-| Game Boy | EmulatorJS / gambatte | `.gb` | Phase 1 |
-| Game Boy Color | EmulatorJS / gambatte | `.gbc` | Phase 1 |
-| Game Boy Advance | EmulatorJS / mgba (`gba`) | `.gba` | Phase 1 |
-| Sega Genesis / Mega Drive | EmulatorJS / genesis_plus_gx (`segaMD`) | `.md` `.gen` `.smd` | Phase 1 |
-| PlayStation | EmulatorJS / Beetle PSX (`psx`) | `.pbp`, or `.zip` with `.cue`+tracks (BIOS required) | Phase 1 |
-| N64 · DS · Saturn | — | — | Coming soon (placeholders) |
-| PS2 · GameCube · Wii · Xbox | — | — | Not planned for this phase |
+| NES | Built-in (mappers 0 / 1 / 2 / 3 / 4 / 7) | `.nes` | Live |
+| Super NES | EmulatorJS / snes9x | `.sfc` `.smc` | Live |
+| Game Boy | EmulatorJS / gambatte | `.gb` | Live |
+| Game Boy Color | EmulatorJS / gambatte | `.gbc` `.gb` | Live |
+| Game Boy Advance | EmulatorJS / mgba (`gba`) | `.gba` | Live |
+| Nintendo 64 | EmulatorJS / mupen64plus (`n64`) | `.z64` `.n64` `.v64` | Live |
 
-Zipped dumps (`.zip`) are unpacked in the browser.
+Zipped dumps (`.zip`) are unpacked in the browser. Each console page only loads that system.
 
 ## Controls
 
@@ -31,9 +28,10 @@ Zipped dumps (`.zip`) are unpacked in the browser.
 | D-Pad | Arrow keys or WASD |
 | A | X or J |
 | B | Z or K |
-| SNES / Genesis extras | V / C · L/R = Q / E |
+| SNES extras | V / C · L/R = Q / E |
+| N64 Z | Space |
 | Start | Enter |
-| Select | Shift or Space |
+| Select | Shift or Space (NES / GB / SNES) |
 | Pause | P |
 | Reset | R |
 | Rewind | Hold Backspace |
@@ -50,21 +48,22 @@ Slots 0–9 live in IndexedDB on this device (slot 0 is also written when you hi
 
 NES rewind is a few seconds of local snapshots. EmulatorJS systems use the core / RetroArch rewind option when supported.
 
+Large N64 dumps are not copied into Continue (browser storage quota). Load them again from your library folder or disk.
+
 ## Netplay
 
 **NES:** Load the same ROM on both machines, then **Netplay → Create room** and share the code. The ROM is never sent. Play is delay-based (a few frames), not rollback.
 
-**GB / SNES / GBA / Genesis:** After the game starts, open the EmulatorJS settings menu and use its netplay. That stack talks to `netplay.emulatorjs.org`.
+**GB / SNES / GBA / N64:** After the game starts, open the EmulatorJS settings menu and use its netplay. That stack talks to `netplay.emulatorjs.org`.
 
 Symmetric NATs without TURN may fail. Treat EmulatorJS netplay as best-effort.
 
-
-## Local Bookshelf + BIOS folders (Chromium)
+## Local library + BIOS folders (Chromium)
 
 On Chrome, Edge, and other Chromium browsers, GameRoom can attach local folders with the File System Access API:
 
-1. **Bookshelf folder** — pick a directory of ROMs you own (`.nes` `.gb` `.gbc` `.gba` `.sfc` `.smc` `.md` `.gen` `.smd` `.zip`, plus a few aliases). GameRoom scans a few levels deep, lists games in a Bookshelf dialog, and loads the chosen file through the same pipeline as disk / Drive / zip picks.
-2. **BIOS folder** (optional for GBA/GB/GBC; **required for PlayStation**) — pick a folder that contains legally obtained system files such as `gba_bios.bin`, `gb_bios.bin`, `gbc_bios.bin`, or a PS1 dump like `scph5501.bin`. When several PS1 BIOS files are present, GameRoom prefers `scph5501.bin` and marks it in the BIOS dialog. When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded. For multi-track PS1 dumps, load a `.zip` that contains the `.cue` and its `.bin` tracks (or a single-file `.pbp`); a lone `.cue` cannot reach companion files.
+1. **Library folder** — pick a directory of ROMs you own. The console page lists only files for that system.
+2. **BIOS folder** (optional for GBA/GB/GBC) — pick a folder that contains legally obtained system files such as `gba_bios.bin`. When a matching EmulatorJS core starts, GameRoom creates a temporary blob URL and sets `EJS_biosUrl`. BIOS bytes are **never** committed to the repo or uploaded.
 
 Folder handles are stored in IndexedDB on this device. On the next visit Chromium may ask you to re-allow access (`queryPermission` / `requestPermission`). Safari and Firefox hide these controls and keep the normal file input + Google Drive paths.
 
@@ -80,13 +79,13 @@ Drive is a picker in the browser. ROM bytes never leave your machine except the 
 4. Create an API key.
 5. Copy the **project number** from Cloud Console home (that is App ID).
 
-Click **Drive** on the site and paste those three values. They are stored in this browser only (`localStorage`). Scope is `drive.file` — only files you pick.
+Click **Drive** on a console page and paste those three values. They are stored in this browser only (`localStorage`). Scope is `drive.file` — only files you pick.
 
 Until Google verifies the app, only test users (you) can use it without the unverified-app warning.
 
 ## Desktop-first
 
-GameRoom is built for a full desktop web browser. The room "map" up top is a visual representation of where you're going; picking a console scrolls you down to the loader + emulator, where you load a ROM, BIOS, or other files. It still runs in mobile and non-desktop browsers, but the layout, controls, and emulator are tuned for desktop — on smaller/touch devices a banner points this out.
+GameRoom is built for a full desktop web browser. The room is a TV and shelf; picking a console opens that system’s library page, where you load a ROM. It still runs in mobile and non-desktop browsers, but the layout, controls, and emulator are tuned for desktop — on smaller/touch devices a banner points this out. Nintendo 64 in particular wants desktop Chrome.
 
 ## Hosting
 

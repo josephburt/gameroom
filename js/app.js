@@ -1,6 +1,13 @@
 (function () {
   "use strict";
 
+  const SYSTEMS = (window.GrokSystems && GrokSystems.byId) || {};
+  const system = GrokSystems && GrokSystems.fromQuery();
+  if (!system || !SYSTEMS[system]) {
+    location.replace("index.html");
+    return;
+  }
+
   const canvas = document.getElementById("screen");
   const ctx = canvas.getContext("2d", { alpha: false });
   const img = ctx.createImageData(256, 240);
@@ -8,8 +15,6 @@
   const crt = document.getElementById("crt-wrap");
 
   const nes = new NES();
-  let system = "nes";
-  let selectedSystem = "nes";
   let paused = false;
   let muted = false;
   let running = false;
@@ -20,119 +25,12 @@
   let lastTime = 0;
   let audioCtx = null;
   let scriptNode = null;
-  let currentRom = { bytes: null, name: "", id: 0, kind: "nes" };
+  let currentRom = { bytes: null, name: "", id: 0, kind: system };
   let rewindHeld = false;
-  let view = "home";
   let volume = 0.7;
   let turbo = false;
   let gainNode = null;
-  let installEvt = null;
   let shotTimer = 0;
-
-  const SYSTEMS = {
-    nes: {
-      label: "NES",
-      accept: ".nes,.NES,.unf,.zip,.ZIP",
-      meter: "Mapper",
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["A", "X / J"],
-        ["B", "Z / K"],
-        ["Start", "Enter"],
-        ["Select", "Shift / Space"],
-        ["Rewind", "Hold Backspace"],
-        ["Turbo", "Hold Tab"]
-      ],
-      note: "Xbox / DualShock / generic pads work after you press a button. Netplay is a room code for NES."
-    },
-    gb: {
-      label: "Game Boy",
-      accept: ".gb,.GB,.zip,.ZIP",
-      meter: "System",
-      core: "gb",
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["A", "X / J"],
-        ["B", "Z / K"],
-        ["Start", "Enter"],
-        ["Select", "Shift"]
-      ],
-      note: "Game Boy cores also accept their own mapping in Settings. Netplay is in the emulator settings menu."
-    },
-    gbc: {
-      label: "Game Boy Color",
-      accept: ".gbc,.GBC,.gb,.GB,.zip,.ZIP",
-      meter: "System",
-      core: "gb",
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["A", "X / J"],
-        ["B", "Z / K"],
-        ["Start", "Enter"],
-        ["Select", "Shift"]
-      ],
-      note: "Game Boy Color uses the same core as Game Boy. Netplay is in the emulator settings menu."
-    },
-    snes: {
-      label: "Super NES",
-      accept: ".sfc,.SFC,.smc,.SMC,.fig,.zip,.ZIP",
-      meter: "System",
-      core: "snes",
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["A / B", "X / Z"],
-        ["X / Y", "V / C"],
-        ["L / R", "Q / E"],
-        ["Start / Select", "Enter / Shift"],
-        ["Rewind", "Hold Backspace (NES) or emulator settings"],
-        ["Turbo", "Hold Tab"]
-      ],
-      note: "Star Fox and other Super FX games run through snes9x. First load fetches the core; after that it stays cached."
-    },
-    gba: {
-      label: "Game Boy Advance",
-      accept: ".gba,.GBA,.agb,.AGB,.zip,.ZIP",
-      meter: "System",
-      core: "gba",
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["A / B", "X / Z"],
-        ["L / R", "Q / E"],
-        ["Start / Select", "Enter / Shift"],
-        ["Turbo", "Hold Tab"]
-      ],
-      note: "GBA runs through EmulatorJS mgba (core id gba). Optional BIOS is not bundled — attach a BIOS folder if you own gba_bios.bin. Most games boot without it."
-    },
-    genesis: {
-      label: "Sega Genesis",
-      accept: ".md,.MD,.gen,.GEN,.smd,.SMD,.zip,.ZIP",
-      meter: "System",
-      core: "segaMD",
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["A / B / C", "Z / X / C"],
-        ["X / Y / Z", "A / S / D (via emulator map)"],
-        ["Start", "Enter"],
-        ["Turbo", "Hold Tab"]
-      ],
-      note: "Genesis / Mega Drive uses EmulatorJS segaMD (genesis_plus_gx). First load fetches the core from the CDN."
-    },
-    ps1: {
-      label: "PlayStation",
-      accept: ".pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP",
-      meter: "System",
-      core: "psx",
-      needsBios: true,
-      keys: [
-        ["D-Pad", "Arrow keys / WASD"],
-        ["× / ○ / □ / △", "X / Z / A / S (via emulator map)"],
-        ["L1 / R1", "Q / E"],
-        ["Start / Select", "Enter / Shift"],
-        ["Turbo", "Hold Tab"]
-      ],
-      note: "PS1 needs a BIOS you legally own (prefer scph5501.bin) in an attached BIOS folder. Prefer .pbp, or a .zip that contains the .cue plus its .bin tracks. A lone .cue file cannot reach companion tracks."
-    }
-  };
 
   const KEYMAP = {
     ArrowRight: 7, ArrowLeft: 6, ArrowDown: 5, ArrowUp: 4,
@@ -142,9 +40,6 @@
     KeyZ: 1, KeyK: 1
   };
 
-  /* Pace the NES core to real time (NTSC ~60.0988 Hz) instead of the display's
-     refresh rate, so it doesn't run fast (and pitch-shift audio) on 120/144 Hz
-     screens. The APU emits ~44100 samples/sec at this rate, matching playback. */
   const NES_FPS = 60.0988;
   const NES_FRAME_MS = 1000 / NES_FPS;
   const NES_MAX_CATCHUP = 4;
@@ -194,7 +89,6 @@
         ? canvas
         : document.querySelector("#ejs-player canvas, #ejs-player .ejs_canvas");
       if (!src) return "";
-      /* Preserve the source aspect ratio so thumbnails aren't squished. */
       const sw = src.width || src.videoWidth || 256;
       const sh = src.height || src.videoHeight || 240;
       const tmp = document.createElement("canvas");
@@ -230,11 +124,37 @@
     }, 2500);
   }
 
+  function escapeHtml(s) {
+    return String(s || "").replace(/[&<>"']/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+    });
+  }
+
+  function isEjs(sys) { return GrokSystems.isEjs(sys); }
+
+  function kindGuess(ext) {
+    if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "NES";
+    if (ext === "gbc") return "GBC";
+    if (ext === "gb" || ext === "sgb" || ext === "dmg") return "GB";
+    if (ext === "gba" || ext === "agb" || ext === "mb") return "GBA";
+    if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return "SNES";
+    if (ext === "z64" || ext === "n64" || ext === "v64") return "N64";
+    if (ext === "zip") return "ZIP";
+    return ext.toUpperCase();
+  }
+
+  function entryMatchesSystem(entry) {
+    const spec = SYSTEMS[system];
+    if (!spec || !entry) return false;
+    const ext = String(entry.ext || "").toLowerCase();
+    return spec.exts.indexOf(ext) !== -1;
+  }
+
   async function renderRecents() {
     const wrap = $("recents-wrap");
     const root = $("recents");
     if (!wrap || !root) return;
-    const games = await GrokLibrary.list();
+    const games = (await GrokLibrary.list()).filter(function (g) { return g.kind === system; });
     if (!games.length) {
       wrap.hidden = true;
       root.innerHTML = "";
@@ -245,7 +165,6 @@
     games.forEach(function (g) {
       const card = document.createElement("div");
       card.className = "recent";
-      card.setAttribute("data-id", String(g.id));
       const open = document.createElement("button");
       open.type = "button";
       open.className = "recent-open";
@@ -253,10 +172,15 @@
       const thumb = g.shot
         ? "<img alt=\"\" src=\"" + g.shot + "\" />"
         : "<div class=\"recent-ph\" aria-hidden=\"true\"></div>";
+      const extra = g.tooLarge ? " · load from library" : "";
       open.innerHTML = thumb +
         "<div class=\"recent-meta\"><strong>" + escapeHtml(g.title || g.name) + "</strong><span>" +
-        (SYSTEMS[g.kind] ? SYSTEMS[g.kind].label : g.kind) + "</span></div>";
+        SYSTEMS[g.kind].label + extra + "</span></div>";
       open.onclick = function () {
+        if (g.tooLarge || !g.bytes) {
+          setHint("This dump is too large to keep in Continue. Load it from the library or disk.");
+          return;
+        }
         const bytes = g.bytes instanceof Uint8Array ? g.bytes : new Uint8Array(g.bytes);
         Promise.resolve(playRom({ bytes: bytes, name: g.name, kind: g.kind })).catch(function (err) {
           hideBoot();
@@ -267,7 +191,6 @@
       x.type = "button";
       x.className = "recent-x";
       x.textContent = "×";
-      x.title = "Remove";
       x.setAttribute("aria-label", "Remove " + (g.title || g.name) + " from Continue");
       x.onclick = function (e) {
         e.stopPropagation();
@@ -279,16 +202,8 @@
     });
   }
 
-  function escapeHtml(s) {
-    return String(s || "").replace(/[&<>"']/g, function (c) {
-      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
-    });
-  }
-
-  function isEjs(sys) { return sys === "gb" || sys === "gbc" || sys === "snes" || sys === "gba" || sys === "genesis" || sys === "ps1"; }
-
-  function renderKeys(sys) {
-    const spec = SYSTEMS[sys] || SYSTEMS.nes;
+  function renderKeys() {
+    const spec = SYSTEMS[system];
     const table = $("keys-table");
     table.innerHTML = spec.keys.map(function (row) {
       return "<tr><td>" + row[0] + "</td><td>" + row[1] + "</td></tr>";
@@ -296,82 +211,27 @@
     $("keys-note").textContent = spec.note;
   }
 
-  function setSystem(next) {
-    system = next;
-    selectedSystem = next;
-    crt.setAttribute("data-system", next);
-    document.body.setAttribute("data-system", next);
-    crt.classList.toggle("is-ejs", isEjs(next));
-    const spec = SYSTEMS[next] || SYSTEMS.nes;
+  function applySystemChrome() {
+    const spec = SYSTEMS[system];
+    document.body.setAttribute("data-system", system);
+    document.title = spec.label + " library — Burt Labs GameRoom";
+    crt.setAttribute("data-system", system);
+    crt.classList.toggle("is-ejs", isEjs(system));
     $("meter-label").textContent = spec.meter;
     $("file").accept = spec.accept;
-    renderKeys(next);
-    document.querySelectorAll(".sys-card").forEach(function (c) {
-      c.classList.toggle("selected", c.getAttribute("data-sys") === next);
-    });
-    if (window.GrokTouch) GrokTouch.sync();
-    updateDeck(next);
-  }
-
-  function scrollToTop() {
-    try { window.scrollTo({ top: 0, behavior: "smooth" }); }
-    catch (e) { window.scrollTo(0, 0); }
-  }
-
-  const DECK_PROMPTS = {
-    nes: "Load a .nes ROM — or drop one anywhere on this panel.",
-    snes: "Load a .sfc / .smc ROM. Super FX games (e.g. Star Fox) fetch the core on first play.",
-    gb: "Load a .gb ROM — or drop one here.",
-    gbc: "Load a .gbc / .gb ROM — or drop one here.",
-    gba: "Load a .gba ROM. BIOS is optional — attach a BIOS folder if you own gba_bios.bin.",
-    genesis: "Load a .md / .gen / .smd ROM — the core fetches on first play.",
-    ps1: "Load a .pbp, or a .zip with .cue+.bin tracks. Attach a BIOS folder with scph5501.bin first — PS1 will not start without it."
-  };
-
-  function updateDeck(sys, opts) {
-    opts = opts || {};
-    const spec = SYSTEMS[sys] || SYSTEMS.nes;
-    const title = $("deck-title");
-    const sub = $("deck-sub");
-    const eyebrow = $("deck-eyebrow");
-    if (title) title.textContent = spec.label;
-    if (eyebrow) eyebrow.textContent = opts.playing ? "Now playing" : "Selected console";
-    if (sub) {
-      sub.textContent = opts.playing
-        ? "Playing “" + (opts.name || spec.label) + "”."
-        : (DECK_PROMPTS[sys] || "Load a ROM to start.");
+    $("rom-name").textContent = spec.label;
+    $("play-tag").textContent = spec.label + " library";
+    $("deck-title").textContent = spec.label;
+    $("deck-eyebrow").textContent = "ROM library";
+    $("deck-sub").textContent = spec.prompt;
+    const demo = $("btn-demo");
+    if (demo) demo.hidden = system !== "nes";
+    const biosBtn = $("btn-bios");
+    if (biosBtn && GrokFolders && GrokFolders.supported()) {
+      biosBtn.hidden = !(system === "gba" || system === "gb" || system === "gbc");
     }
-  }
-
-  /* The room photo stays as a persistent map up top; "home" just returns to it. */
-  function showHome() {
-    view = "home";
-    document.body.classList.remove("sheet-open");
-    const sheet = $("btn-sheet");
-    if (sheet) sheet.setAttribute("aria-expanded", "false");
-    renderRecents().catch(function () {});
-    document.querySelectorAll(".side-nav-item").forEach(function (btn) {
-      const on = btn.getAttribute("data-nav") === "consoles";
-      btn.classList.toggle("is-active", on);
-      if (on) btn.setAttribute("aria-current", "page");
-      else btn.removeAttribute("aria-current");
-    });
-    scrollToTop();
-    const focusCard = document.querySelector(".sys-card.selected:not(.is-soon)") || document.querySelector(".sys-card:not(.is-soon)");
-    if (focusCard) setTimeout(function () { try { focusCard.focus({ preventScroll: true }); } catch (e) {} }, 360);
-  }
-
-  /* The loader + emulator live below the map; "play" reveals and scrolls to them. */
-  function showPlay() {
-    view = "play";
-    document.body.classList.add("deck-open");
-    $("play").hidden = false;
+    renderKeys();
     if (window.GrokTouch) GrokTouch.sync();
-    const deck = $("play");
-    if (deck) {
-      try { deck.scrollIntoView({ behavior: "smooth", block: "start" }); }
-      catch (e) { deck.scrollIntoView(); }
-    }
   }
 
   function setPlayingUi(name, info) {
@@ -381,10 +241,13 @@
     paused = false;
     $("btn-pause").textContent = "Pause";
     $("run-dot").classList.add("on");
-    document.body.classList.add("rom-loaded");
-    updateDeck(system, { playing: true, name: name });
-    showPlay();
+    $("deck-eyebrow").textContent = "Now playing";
+    $("deck-sub").textContent = "Playing “" + (name || specLabel()) + "”.";
     updateHud();
+  }
+
+  function specLabel() {
+    return SYSTEMS[system].label;
   }
 
   function stopNes() {
@@ -421,7 +284,6 @@
   function loadNes(bytes, name) {
     GrokEjs.stop();
     GrokNetplay.close();
-    setSystem("nes");
     const cart = nes.loadRom(bytes, name);
     currentRom = { bytes: bytes, name: name, id: GrokRom.romId(bytes), kind: "nes" };
     GrokRewind.reset();
@@ -440,7 +302,6 @@
   async function loadEjs(bytes, name, kind) {
     stopNes();
     GrokNetplay.close();
-    setSystem(kind);
     currentRom = { bytes: bytes, name: name, id: GrokRom.romId(bytes), kind: kind };
     GrokRewind.reset();
     const spec = SYSTEMS[kind];
@@ -448,45 +309,24 @@
     setPlayingUi(title, GrokRom.systemLabel(kind, bytes));
     $("fps").textContent = spec.label;
     running = true;
-    showBoot(title, spec.label, kind === "ps1"
-      ? "Loading the PlayStation core. A BIOS from your folder is required."
-      : "Loading the " + spec.label + " core. First time can take a bit — Super FX games like Star Fox need it.");
+    showBoot(title, spec.label, kind === "n64"
+      ? "Loading the Nintendo 64 core. First time is a large download — desktop Chrome works best."
+      : "Loading the " + spec.label + " core. First time can take a bit.");
     let biosUrl = "";
-    let biosName = "";
     try {
-      if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc" || kind === "ps1")) {
+      if (GrokFolders && (kind === "gba" || kind === "gb" || kind === "gbc")) {
         const info = await GrokFolders.biosFor(kind);
-        if (info) {
-          biosUrl = info.url || "";
-          biosName = info.name || "";
-        }
+        if (info) biosUrl = info.url || "";
       }
     } catch (e) {
       biosUrl = "";
-      biosName = "";
-    }
-    if (kind === "ps1" && !biosUrl) {
-      hideBoot();
-      running = false;
-      setHint("PlayStation needs a BIOS. Attach a BIOS folder with scph5501.bin (or another SCPH dump you own), then load the game again.");
-      updateDeck("ps1", {});
-      return;
-    }
-    const ext = GrokRom.extOf(name);
-    if (kind === "ps1" && ext === "cue") {
-      setHint("This is a lone .cue — companion .bin tracks won’t load. Prefer a .pbp, or a .zip that contains the .cue and its tracks.");
-    } else if (kind === "ps1" && biosName) {
-      setHint("Using BIOS “" + biosName + "”.");
-    }
-    if (kind === "ps1" && biosName) {
-      showBoot(title, spec.label, "BIOS: " + biosName + " · loading PlayStation core…");
     }
     await GrokEjs.start(bytes, name, {
       muted: muted,
       volume: volume,
       core: spec.core,
       biosUrl: biosUrl,
-      color: ({ snes: "#7b68ee", gba: "#6b8afd", genesis: "#1aa3ff", gb: "#9bbc0f", gbc: "#a78bfa", ps1: "#c0c0c0" })[kind] || "#ff3b4e",
+      color: spec.color,
       gameId: currentRom.id,
       onStart: function () {
         hideBoot();
@@ -494,16 +334,18 @@
         GrokEjs.setVolume(volume, muted);
         rememberCurrent();
         scheduleShot();
-        if (kind === "ps1" && biosName) setHint("Playing with BIOS “" + biosName + "”.");
       }
     });
   }
 
   function playRom(rom) {
+    if (rom.kind !== system) {
+      throw new Error("This page is for " + specLabel() + ". That file looks like " +
+        (SYSTEMS[rom.kind] ? SYSTEMS[rom.kind].label : rom.kind) + ".");
+    }
     if (rom.kind === "nes") loadNes(rom.bytes, rom.name);
-    else if (isEjs(rom.kind)) {
-      return loadEjs(rom.bytes, rom.name, rom.kind);
-    }     else throw new Error("Unsupported ROM — Phase 1 supports NES, SNES, GB, GBC, GBA, Genesis, and PlayStation");
+    else if (isEjs(rom.kind)) return loadEjs(rom.bytes, rom.name, rom.kind);
+    else throw new Error("Unsupported ROM");
   }
 
   function pickZipRom(roms) {
@@ -540,14 +382,14 @@
   async function loadBytes(bytes, name) {
     try {
       setHint("Reading “" + (name || "ROM") + "”…");
-      showPlay();
-      const roms = await GrokRom.listRoms(bytes, name, { prefer: system === "ps1" ? "ps1" : "" });
+      const roms = (await GrokRom.listRoms(bytes, name, { prefer: system }))
+        .filter(function (r) { return r.kind === system; });
       if (!roms.length) {
-        throw new Error("No supported ROM found (NES / SNES / GB / GBC / GBA / Genesis / PS1). If this is a zip, re-zip as .zip (not 7z/RAR). Prefer .pbp for PlayStation.");
+        throw new Error("No " + specLabel() + " ROM found in that file. This page only loads " + specLabel() + " games.");
       }
       let rom = roms[0];
       if (roms.length > 1) {
-        setHint(roms.length + " ROMs in this zip — pick one");
+        setHint(roms.length + " matching ROMs in this zip — pick one");
         rom = await pickZipRom(roms);
         if (!rom) {
           setHint("Cancelled zip picker.");
@@ -562,8 +404,6 @@
     }
   }
 
-  /* Advance exactly one real NES frame (respecting netplay + turbo).
-     Returns the number of emulated frames produced, or 0 if netplay is stalled. */
   function stepNesFrame() {
     const local = nes.ctrl1.buttons;
     const net = GrokNetplay.consume(local);
@@ -599,7 +439,6 @@
     if (!lastTime) lastTime = now;
     let dt = now - lastTime;
     lastTime = now;
-    /* Don't replay a big gap (backgrounded tab, hitch) — just resync. */
     if (dt > 250) dt = NES_FRAME_MS;
     frameAcc += dt;
 
@@ -612,7 +451,6 @@
       stepped++;
       frames += adv;
     }
-    /* Cap the backlog so we never spiral. */
     if (frameAcc > NES_FRAME_MS * NES_MAX_CATCHUP) frameAcc = 0;
 
     if (waiting) { $("fps").textContent = "WAIT"; return; }
@@ -628,17 +466,8 @@
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
     if (e.code === "Escape") {
       if (!$("help-overlay").hidden) { $("help-overlay").hidden = true; e.preventDefault(); return; }
-      if (document.body.classList.contains("sheet-open")) {
-        document.body.classList.remove("sheet-open");
-        $("btn-sheet").setAttribute("aria-expanded", "false");
-        e.preventDefault();
-        return;
-      }
-      if (view === "play") { showHome(); e.preventDefault(); return; }
     }
     if (e.key === "?" || (e.code === "Slash" && e.shiftKey)) { e.preventDefault(); toggleHelp(); return; }
-    /* In-game hotkeys only apply once a ROM is loaded, so Tab/arrows/etc. still
-       navigate and scroll the room map normally when you're just browsing. */
     const playing = !!currentRom.id;
     if (playing && e.code === "KeyP") { togglePause(); e.preventDefault(); return; }
     if (e.code === "KeyR" && (e.metaKey || e.ctrlKey)) return;
@@ -782,10 +611,6 @@
   $("btn-pause").onclick = togglePause;
   $("btn-reset").onclick = reset;
   $("btn-load").onclick = openFile;
-  $("btn-load-home").onclick = function () {
-    $("file").accept = ".nes,.NES,.unf,.gb,.GB,.gbc,.GBC,.gba,.GBA,.sfc,.SFC,.smc,.SMC,.fig,.md,.MD,.gen,.GEN,.smd,.SMD,.pbp,.PBP,.cue,.CUE,.iso,.ISO,.bin,.BIN,.zip,.ZIP";
-    openFile();
-  };
   $("file").onchange = function (e) {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -869,15 +694,11 @@
     $("netplay-status").textContent = "Left the session.";
   };
 
-  $("btn-sheet").onclick = function () {
-    const open = document.body.classList.toggle("sheet-open");
-    this.setAttribute("aria-expanded", open ? "true" : "false");
-  };
-
   const zone = $("drop-zone");
+  const libraryEl = $("library");
   function onDrag(e) { e.preventDefault(); if (zone) zone.classList.add("drag"); }
   window.addEventListener("dragover", onDrag);
-  $("home").addEventListener("dragover", onDrag);
+  if (libraryEl) libraryEl.addEventListener("dragover", onDrag);
   window.addEventListener("dragleave", function () { if (zone) zone.classList.remove("drag"); });
   function onDrop(e) {
     e.preventDefault();
@@ -925,7 +746,6 @@
       return;
     }
     setHint("Opening Google Drive…");
-    showPlay();
     try {
       const picked = await GrokDrive.pickRom();
       if (!picked) {
@@ -939,146 +759,13 @@
     }
   }
   $("btn-drive").onclick = pickFromDrive;
-  $("btn-drive-home").onclick = pickFromDrive;
   GrokDrive.warmup();
 
-  function setSideNav(active) {
-    document.querySelectorAll(".side-nav-item").forEach(function (btn) {
-      const on = btn.getAttribute("data-nav") === active;
-      btn.classList.toggle("is-active", on);
-      if (on) btn.setAttribute("aria-current", "page");
-      else btn.removeAttribute("aria-current");
-    });
-  }
-
-  function openAbout() {
-    setSideNav("about");
-    const dlg = $("about-dlg");
-    if (dlg && dlg.showModal) dlg.showModal();
-  }
-
-  function openCheats() {
-    setSideNav("cheats");
-    const dlg = $("cheats-dlg");
-    if (dlg && dlg.showModal) dlg.showModal();
-  }
-
-  function openSettingsHome() {
-    setSideNav("settings");
-    const crtHome = $("chk-crt-home");
-    const touchHome = $("chk-touch-home");
-    if (crtHome && $("chk-crt")) crtHome.checked = $("chk-crt").checked;
-    if (touchHome && $("chk-touch")) touchHome.checked = $("chk-touch").checked;
-    const dlg = $("settings-home-dlg");
-    if (dlg && dlg.showModal) dlg.showModal();
-  }
-
-  async function openSavedGames() {
-    setSideNav("saves");
-    if (currentRom.id && system === "nes") {
-      // Prefer existing save-state UI when a NES ROM is active
-      showPlay();
-      if ($("btn-states")) $("btn-states").click();
-      return;
-    }
-    await renderRecents();
-    const wrap = $("recents-wrap");
-    if (wrap && !wrap.hidden) {
-      wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      const first = wrap.querySelector(".recent-open");
-      if (first) first.focus();
-      return;
-    }
-    // Lightweight stub when nothing is saved yet
-    setHint("No saved games yet — load a ROM, then use Save states from the play panel.");
-    if ($("state-dlg") && $("state-dlg").showModal) {
-      // Reuse state dialog shell as empty stub messaging via list
-      const list = $("state-list");
-      if (list) list.innerHTML = "<li class='note'>No save states in this browser yet. Load a ROM first, then open Save states from the emulator panel.</li>";
-      $("state-dlg").showModal();
-    }
-  }
-
-  function focusConsoles() {
-    setSideNav("consoles");
-    const room = document.querySelector(".room--photo");
-    if (room) room.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    const focusCard = document.querySelector(".sys-card.selected:not(.is-soon)") || document.querySelector(".sys-card:not(.is-soon)");
-    if (focusCard) focusCard.focus();
-  }
-
-  document.querySelectorAll("[data-nav]").forEach(function (el) {
-    el.addEventListener("click", function () {
-      const nav = el.getAttribute("data-nav");
-      if (nav === "consoles") focusConsoles();
-      else if (nav === "saves") openSavedGames();
-      else if (nav === "cheats") openCheats();
-      else if (nav === "settings") openSettingsHome();
-      else if (nav === "about") openAbout();
-    });
-  });
-
-  if ($("about-close")) $("about-close").onclick = function () { $("about-dlg").close(); setSideNav("consoles"); };
-  if ($("cheats-close")) $("cheats-close").onclick = function () { $("cheats-dlg").close(); setSideNav("consoles"); };
-  if ($("settings-home-close")) {
-    $("settings-home-close").onclick = function () {
-      const crtHome = $("chk-crt-home");
-      const touchHome = $("chk-touch-home");
-      if (crtHome && $("chk-crt")) {
-        $("chk-crt").checked = crtHome.checked;
-        $("chk-crt").dispatchEvent(new Event("change"));
-      }
-      if (touchHome && $("chk-touch")) {
-        $("chk-touch").checked = touchHome.checked;
-        $("chk-touch").dispatchEvent(new Event("change"));
-      }
-      $("settings-home-dlg").close();
-      setSideNav("consoles");
+  if ($("btn-demo")) {
+    $("btn-demo").onclick = function () {
+      loadBytes(b64ToBytes(DEMO_ROM_B64), "DEMO ROM");
     };
   }
-
-  if ($("btn-continue-home")) {
-    $("btn-continue-home").onclick = function () {
-      openSavedGames();
-    };
-  }
-
-  document.querySelectorAll(".sys-card").forEach(function (card) {
-    card.onclick = function () {
-      if (card.classList.contains("is-soon") || card.disabled || card.getAttribute("aria-disabled") === "true") return;
-      const sys = card.getAttribute("data-sys");
-      if (!sys || !SYSTEMS[sys]) return;
-      if (sys === system && currentRom.id) {
-        showPlay();
-        if (paused) togglePause();
-        return;
-      }
-      setSystem(sys);
-      document.body.classList.remove("rom-loaded");
-      $("rom-name").textContent = SYSTEMS[sys].label;
-      $("mapper-info").textContent = "No ROM";
-      $("run-dot").classList.remove("on");
-      setHint("Load a " + SYSTEMS[sys].label + " ROM, or drop one here");
-      $("fps").textContent = "-- FPS";
-      running = false;
-      currentRom = { bytes: null, name: "", id: 0, kind: sys };
-      showPlay();
-      if (sys !== "nes") {
-        stopNes();
-        GrokEjs.stop();
-        crt.classList.add("is-ejs");
-      } else {
-        GrokEjs.stop();
-        crt.classList.remove("is-ejs");
-      }
-    };
-  });
-
-  $("btn-home").onclick = showHome;
-  if ($("btn-deck-up")) $("btn-deck-up").onclick = showHome;
-  $("btn-demo").onclick = function () {
-    loadBytes(b64ToBytes(DEMO_ROM_B64), "DEMO ROM");
-  };
 
   GrokTouch.init({
     nes: nes,
@@ -1090,8 +777,8 @@
   $("chk-touch").checked = GrokTouch.isCoarse();
   GrokTouch.setForced(GrokTouch.isCoarse());
 
-  /* —— Local folder pickers (Chromium File System Access API) —— */
   const folderApi = GrokFolders && GrokFolders.supported();
+  let bookshelfEntries = [];
 
   function setFolderStatus(msg) {
     const el = $("folder-status");
@@ -1100,6 +787,10 @@
 
   function showFolderControls(on) {
     document.querySelectorAll(".folder-api-only").forEach(function (el) {
+      if (el.id === "btn-bios" && !(system === "gba" || system === "gb" || system === "gbc")) {
+        el.hidden = true;
+        return;
+      }
       el.hidden = !on;
     });
     document.querySelectorAll(".folder-fallback").forEach(function (el) {
@@ -1107,16 +798,49 @@
     });
   }
 
-  function kindGuess(ext) {
-    if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "NES";
-    if (ext === "gbc") return "GBC";
-    if (ext === "gb" || ext === "sgb" || ext === "dmg") return "GB";
-    if (ext === "gba" || ext === "agb" || ext === "mb") return "GBA";
-    if (ext === "sfc" || ext === "smc" || ext === "fig" || ext === "swc") return "SNES";
-    if (ext === "md" || ext === "gen" || ext === "smd") return "Genesis";
-    if (ext === "pbp" || ext === "cue" || ext === "iso" || ext === "bin") return "PS1";
-    if (ext === "zip") return "ZIP";
-    return ext.toUpperCase();
+  function renderLibraryList(filter) {
+    const list = $("library-list");
+    if (!list) return;
+    list.innerHTML = "";
+    const q = String(filter || "").trim().toLowerCase();
+    const rows = bookshelfEntries.filter(function (e) {
+      if (!entryMatchesSystem(e)) return false;
+      if (!q) return true;
+      return (e.path || e.name || "").toLowerCase().indexOf(q) !== -1;
+    });
+    if (!rows.length) {
+      const li = document.createElement("li");
+      li.className = "note";
+      if (!folderApi) {
+        li.textContent = "Use Load ROM, drag-and-drop, or Google Drive.";
+      } else if (!GrokFolders.getRomHandle()) {
+        li.textContent = "Attach a folder to list " + specLabel() + " games here, or load a single file.";
+      } else if (bookshelfEntries.length) {
+        li.textContent = q ? "No matches." : "No " + specLabel() + " ROMs in this folder.";
+      } else {
+        li.textContent = "No ROMs found in this folder.";
+      }
+      list.appendChild(li);
+      return;
+    }
+    rows.forEach(function (entry) {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn";
+      btn.textContent = entry.path + "  ·  " + kindGuess(entry.ext);
+      btn.onclick = async function () {
+        try {
+          setHint("Loading “" + entry.name + "” from library…");
+          const file = await GrokFolders.readEntry(entry);
+          await loadBytes(file.bytes, file.name);
+        } catch (err) {
+          setHint(String(err.message || err));
+        }
+      };
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
   }
 
   async function refreshFolderStatus() {
@@ -1127,13 +851,11 @@
     const rom = GrokFolders.getRomHandle();
     const bios = GrokFolders.getBiosHandle();
     const bits = [];
-    if (rom) bits.push("Bookshelf: " + (rom.name || "folder"));
-    if (bios) {
-      let n = 0;
-      try { n = (await GrokFolders.listBiosFiles()).length; } catch (e) {}
-      bits.push("BIOS: " + (bios.name || "folder") + (n ? " (" + n + " file" + (n === 1 ? "" : "s") + ")" : ""));
+    if (rom) bits.push("Folder: " + (rom.name || "library"));
+    if (bios && (system === "gba" || system === "gb" || system === "gbc")) {
+      bits.push("BIOS attached");
     }
-    setFolderStatus(bits.length ? bits.join(" · ") : "No local folders attached yet (Chromium).");
+    setFolderStatus(bits.length ? bits.join(" · ") : "No local folder attached yet (Chromium).");
   }
 
   async function renderBiosList() {
@@ -1148,13 +870,9 @@
     }
     try {
       const files = await GrokFolders.listBiosFiles();
-      const labels = { gba: "GBA", gb: "GB", gbc: "GBC", sgb: "SGB", ps1: "PlayStation" };
-      const preferred = files.filter(function (f) { return f.preferred; }).length;
+      const labels = { gba: "GBA", gb: "GB", gbc: "GBC", sgb: "SGB" };
       status.textContent = "Folder: " + (handle.name || "BIOS") + " · " +
-        (files.length
-          ? files.length + " file" + (files.length === 1 ? "" : "s") + " recognized" +
-            (preferred ? " · " + preferred + " preferred" : "")
-          : "no known BIOS names found");
+        (files.length ? files.length + " file" + (files.length === 1 ? "" : "s") + " recognized" : "no known BIOS names found");
       files.forEach(function (f) {
         const li = document.createElement("li");
         const sys = labels[f.kind] || String(f.kind || "").toUpperCase();
@@ -1166,46 +884,6 @@
     }
   }
 
-  let bookshelfEntries = [];
-
-  function renderBookshelfList(filter) {
-    const list = $("bookshelf-list");
-    if (!list) return;
-    list.innerHTML = "";
-    const q = String(filter || "").trim().toLowerCase();
-    const rows = bookshelfEntries.filter(function (e) {
-      if (!q) return true;
-      return (e.path || e.name || "").toLowerCase().indexOf(q) !== -1;
-    });
-    if (!rows.length) {
-      const li = document.createElement("li");
-      li.className = "note";
-      li.textContent = bookshelfEntries.length ? "No matches." : "No ROMs found in this folder.";
-      list.appendChild(li);
-      return;
-    }
-    rows.forEach(function (entry) {
-      const li = document.createElement("li");
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn";
-      btn.textContent = entry.path + "  ·  " + kindGuess(entry.ext);
-      btn.onclick = async function () {
-        try {
-          setHint("Loading “" + entry.name + "” from bookshelf…");
-          $("bookshelf-dlg").close();
-          showPlay();
-          const file = await GrokFolders.readEntry(entry);
-          await loadBytes(file.bytes, file.name);
-        } catch (err) {
-          setHint(String(err.message || err));
-        }
-      };
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
-  }
-
   async function refreshBookshelf(opts) {
     opts = opts || {};
     const status = $("bookshelf-status");
@@ -1213,7 +891,7 @@
     if (!handle) {
       bookshelfEntries = [];
       if (status) status.textContent = "No folder attached.";
-      renderBookshelfList("");
+      renderLibraryList(($("library-filter") && $("library-filter").value) || "");
       return;
     }
     if (status) status.textContent = "Scanning “" + (handle.name || "folder") + "”…";
@@ -1223,14 +901,15 @@
         if (!ok) throw new Error("Permission denied — choose the folder again.");
       }
       bookshelfEntries = await GrokFolders.listRomLibrary();
+      const n = bookshelfEntries.filter(entryMatchesSystem).length;
       if (status) {
-        status.textContent = "Folder: " + (handle.name || "ROMs") + " · " + bookshelfEntries.length + " file" + (bookshelfEntries.length === 1 ? "" : "s");
+        status.textContent = "Folder: " + (handle.name || "ROMs") + " · " + n + " " + specLabel() + " file" + (n === 1 ? "" : "s");
       }
-      renderBookshelfList(($("bookshelf-filter") && $("bookshelf-filter").value) || "");
+      renderLibraryList(($("library-filter") && $("library-filter").value) || "");
     } catch (err) {
       bookshelfEntries = [];
       if (status) status.textContent = String(err.message || err);
-      renderBookshelfList("");
+      renderLibraryList("");
     }
     await refreshFolderStatus();
   }
@@ -1261,15 +940,13 @@
   if (folderApi) {
     showFolderControls(true);
     $("btn-bookshelf").onclick = openBookshelf;
-    $("btn-bookshelf-home").onclick = openBookshelf;
     $("btn-bios").onclick = openBiosDlg;
-    $("btn-bios-home").onclick = openBiosDlg;
 
     $("bookshelf-pick").onclick = async function () {
       try {
         await GrokFolders.pickRomFolder();
         await refreshBookshelf();
-        setHint("Bookshelf folder attached.");
+        setHint("Library folder attached.");
       } catch (err) {
         if (err && err.name === "AbortError") return;
         setHint(String(err.message || err));
@@ -1280,10 +957,10 @@
       await GrokFolders.clearRomFolder();
       bookshelfEntries = [];
       await refreshBookshelf();
-      setHint("Forgot bookshelf folder.");
+      setHint("Forgot library folder.");
     };
     $("bookshelf-close").onclick = function () { $("bookshelf-dlg").close(); };
-    $("bookshelf-filter").oninput = function () { renderBookshelfList(this.value); };
+    $("library-filter").oninput = function () { renderLibraryList(this.value); };
 
     $("bios-pick").onclick = async function () {
       try {
@@ -1309,57 +986,41 @@
       GrokFolders.restoreBiosFolder().catch(function () { return null; })
     ]).then(function (rows) {
       const rom = rows[0];
-      const bios = rows[1];
       if (rom && rom.needsPermission) {
-        setFolderStatus("Bookshelf folder remembered — open Bookshelf and allow access when prompted.");
-      } else if (bios && bios.needsPermission) {
-        setFolderStatus("BIOS folder remembered — open BIOS and allow access when prompted.");
+        setFolderStatus("Library folder remembered — click Attach folder and allow access when prompted.");
+        renderLibraryList("");
       } else {
-        refreshFolderStatus();
+        refreshBookshelf().then(refreshFolderStatus);
       }
     });
   } else {
     showFolderControls(false);
+    renderLibraryList("");
   }
 
-    if ("serviceWorker" in navigator) {
+  if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(function () {});
   }
 
-  window.addEventListener("beforeinstallprompt", function (e) {
-    e.preventDefault();
-    installEvt = e;
-    $("btn-install").hidden = false;
-  });
-  $("btn-install").onclick = function () {
-    if (!installEvt) return;
-    installEvt.prompt();
-    installEvt.userChoice.finally(function () {
-      installEvt = null;
-      $("btn-install").hidden = true;
-    });
-  };
-
-  /* —— "Best on desktop" banner for small / coarse-pointer browsers —— */
-  (function initDesktopBanner() {
-    const banner = $("desktop-banner");
-    if (!banner) return;
-    let dismissed = false;
-    try { dismissed = localStorage.getItem("gr-desktop-banner") === "off"; } catch (e) {}
-    const small = window.matchMedia && (
-      window.matchMedia("(max-width: 900px)").matches ||
-      window.matchMedia("(pointer: coarse)").matches
-    );
-    if (small && !dismissed) banner.hidden = false;
-    const x = $("desktop-banner-x");
-    if (x) x.onclick = function () {
-      banner.hidden = true;
-      try { localStorage.setItem("gr-desktop-banner", "off"); } catch (e) {}
-    };
-  })();
-
-  setSystem("nes");
-  showHome();
+  applySystemChrome();
   renderRecents().catch(function () {});
+
+  const params = new URLSearchParams(location.search);
+  if (params.get("demo") === "1" && system === "nes") {
+    loadBytes(b64ToBytes(DEMO_ROM_B64), "DEMO ROM");
+  } else if (params.get("resume")) {
+    const id = Number(params.get("resume"));
+    GrokLibrary.get(id).then(function (g) {
+      if (!g || g.kind !== system || !g.bytes) {
+        setHint("That Continue entry is missing. Load it from the library.");
+        return;
+      }
+      const bytes = g.bytes instanceof Uint8Array ? g.bytes : new Uint8Array(g.bytes);
+      return playRom({ bytes: bytes, name: g.name, kind: g.kind });
+    }).catch(function (err) {
+      setHint(String(err.message || err));
+    });
+  }
+
   raf = requestAnimationFrame(frame);
 })();

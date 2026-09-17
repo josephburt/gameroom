@@ -1,7 +1,7 @@
 {
   "name": "Burt Labs GameRoom",
   "short_name": "GameRoom",
-  "description": "Living-room browser emulator for NES, SNES, Game Boy, GBA, and Genesis. Load a ROM you own.",
+  "description": "Living-room browser emulator for NES, SNES, Game Boy, GBC, GBA, and N64. Load a ROM you own.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

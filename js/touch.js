@@ -145,13 +145,13 @@
     const faceY = overlay.querySelector(".face-y");
     // EJS defaultControls: KeyV=BUTTON_3 (SNES X / Genesis C), KeyC=BUTTON_4 (Y).
     if (faceX) {
-      const lab = sys === "genesis" ? "C" : "X";
+      const lab = sys === "n64" ? "C▶" : "X";
       faceX.textContent = lab;
       faceX.setAttribute("aria-label", lab);
     }
     if (faceY) {
-      faceY.textContent = "Y";
-      faceY.setAttribute("aria-label", "Y");
+      faceY.textContent = sys === "n64" ? "C◀" : "Y";
+      faceY.setAttribute("aria-label", sys === "n64" ? "C-Left" : "Y");
     }
   }
 

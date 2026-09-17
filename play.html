@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0c12" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Load a ROM you own in Burt Labs GameRoom." />
+  <meta name="author" content="Joseph Burt" />
+  <meta name="robots" content="noindex" />
+  <title>Library — Burt Labs GameRoom</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+</head>
+<body class="page-play" data-system="nes">
+  <a class="skip-link" href="#library">Skip to library</a>
+  <div class="scanline-overlay" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="brand">
+      <a class="logo-btn" href="index.html" title="Back to game room" aria-label="Back to game room">
+        <span class="logo-mark" aria-hidden="true"></span>
+      </a>
+      <div class="brand-text">
+        <h1>Burt Labs GameRoom</h1>
+        <span class="tag" id="play-tag">Library</span>
+      </div>
+    </div>
+    <div class="top-links" aria-label="Resources">
+      <a class="top-link" href="index.html">Room</a>
+      <a class="top-link" href="https://github.com/josephburt/gameroom" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+    <div class="status" aria-live="polite">
+      <span id="rom-name" class="status-rom">No ROM</span>
+      <span class="status-sep" aria-hidden="true"></span>
+      <span class="dot" id="run-dot" aria-hidden="true"></span>
+      <span id="fps" class="status-fps">-- FPS</span>
+    </div>
+  </header>
+
+  <main id="play" aria-label="Library and play">
+    <div class="deck-head">
+      <div class="deck-head-main">
+        <span class="deck-eyebrow" id="deck-eyebrow">ROM library</span>
+        <h2 class="deck-title" id="deck-title">Super NES</h2>
+        <p class="deck-sub" id="deck-sub">Load a ROM to start.</p>
+      </div>
+      <a class="btn deck-up" id="btn-deck-up" href="index.html">← Room</a>
+    </div>
+
+    <section id="library" class="library-panel" aria-label="ROM library">
+      <div class="btn-row">
+        <button type="button" id="btn-load" class="btn primary">Load ROM</button>
+        <button type="button" id="btn-bookshelf" class="btn folder-api-only" hidden>Attach folder</button>
+        <button type="button" id="btn-drive" class="btn">Google Drive</button>
+        <button type="button" id="btn-bios" class="btn folder-api-only" hidden>BIOS folder</button>
+        <button type="button" id="btn-demo" class="btn" hidden>Play NES demo</button>
+      </div>
+      <p class="note folder-fallback" hidden>This browser cannot attach a local folder (needs Chromium). Use Load ROM, drag-and-drop, or Google Drive.</p>
+      <p class="note" id="folder-status"></p>
+      <label class="shelf-filter" for="library-filter">Filter this system
+        <input id="library-filter" type="search" placeholder="Search titles…" autocomplete="off" />
+      </label>
+      <ul id="library-list" class="zip-list bookshelf-list"></ul>
+      <div id="recents-wrap" class="recents-wrap" hidden>
+        <h2>Continue on this system</h2>
+        <div id="recents" class="recents"></div>
+      </div>
+    </section>
+
+    <section class="stage" id="drop-zone">
+      <div class="bezel">
+        <div class="crt-wrap" id="crt-wrap" data-system="nes">
+          <canvas id="screen" width="256" height="240" role="img" aria-label="Emulator display"></canvas>
+          <div id="ejs-player" aria-label="EmulatorJS player"></div>
+          <div class="crt-glass" aria-hidden="true"></div>
+          <div class="crt-vignette" aria-hidden="true"></div>
+          <div id="play-hud" class="play-hud" aria-hidden="true"></div>
+          <div id="boot-overlay" hidden role="status" aria-live="polite">
+            <div class="boot-card">
+              <span class="boot-sys" id="boot-sys">SUPER NES</span>
+              <strong id="boot-title">Loading</strong>
+              <p id="boot-msg">Fetching the emulator core… first time can take a moment.</p>
+              <div class="boot-bar" aria-hidden="true"><i id="boot-bar"></i></div>
+            </div>
+          </div>
+          <div id="touch-overlay" hidden data-system="nes" aria-label="On-screen controls">
+            <div class="touch-shoulders">
+              <button type="button" class="tbtn shoulder" data-key="KeyQ" data-systems="snes,gba,n64" aria-label="L shoulder">L</button>
+              <button type="button" class="tbtn" data-act="rewind" aria-label="Rewind">RW</button>
+              <button type="button" class="tbtn" data-act="turbo" aria-label="Turbo">FF</button>
+              <button type="button" class="tbtn" data-act="pause" aria-label="Pause">❚❚</button>
+              <button type="button" class="tbtn shoulder" data-key="KeyE" data-systems="snes,gba,n64" aria-label="R shoulder">R</button>
+            </div>
+            <div class="touch-main">
+              <div id="touch-dpad" class="dpad" role="group" aria-label="D-pad">
+                <span class="dpad-cross" aria-hidden="true"></span>
+              </div>
+              <div class="touch-mid">
+                <button type="button" class="tbtn pill" data-key="ShiftLeft" data-systems="nes,snes,gb,gbc,gba" aria-label="Select">Select</button>
+                <button type="button" class="tbtn pill tbtn-z" data-key="Space" data-systems="n64" aria-label="Z" hidden>Z</button>
+                <button type="button" class="tbtn pill" data-key="Enter" aria-label="Start">Start</button>
+              </div>
+              <div class="face" role="group" aria-label="Face buttons">
+                <button type="button" class="tbtn face-y" data-key="KeyC" data-systems="snes,n64" aria-label="Y">Y</button>
+                <button type="button" class="tbtn face-x" data-key="KeyV" data-systems="snes,n64" aria-label="X">X</button>
+                <button type="button" class="tbtn face-b" data-key="KeyZ" aria-label="B">B</button>
+                <button type="button" class="tbtn face-a" data-key="KeyX" aria-label="A">A</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="hint" id="hint">Drop a ROM, or pick one from the library above</p>
+        <p class="rotate-hint" id="rotate-hint">Rotate to landscape for a larger playfield</p>
+      </div>
+
+      <aside class="panel" id="side-panel" aria-label="Controls">
+        <div class="btn-row">
+          <button type="button" id="btn-reset" class="btn">Reset</button>
+          <button type="button" id="btn-pause" class="btn">Pause</button>
+          <button type="button" id="btn-full" class="btn">Fullscreen</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" id="btn-states" class="btn">Save states</button>
+          <button type="button" id="btn-netplay" class="btn">Netplay</button>
+          <button type="button" id="btn-mute" class="btn">Mute</button>
+          <button type="button" id="btn-shot" class="btn">Screenshot</button>
+        </div>
+        <div class="btn-row">
+          <label class="chk"><input type="checkbox" id="chk-crt" checked /> CRT filter</label>
+          <label class="chk"><input type="checkbox" id="chk-smooth" /> Smooth scale</label>
+          <label class="chk"><input type="checkbox" id="chk-touch" /> Touch pad</label>
+          <label class="chk"><input type="checkbox" id="chk-ff" /> Turbo</label>
+        </div>
+        <label class="vol" for="vol">Volume
+          <input type="range" id="vol" min="0" max="100" value="70" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" />
+        </label>
+        <input type="file" id="file" accept=".nes,.zip" hidden />
+
+        <div class="meter">
+          <span id="meter-label">Mapper</span>
+          <strong id="mapper-info">—</strong>
+        </div>
+
+        <h2>Controls</h2>
+        <table class="keys" id="keys-table">
+          <tr><td>D-Pad</td><td>Arrow keys / WASD</td></tr>
+          <tr><td>A</td><td>X / J</td></tr>
+          <tr><td>B</td><td>Z / K</td></tr>
+          <tr><td>Start</td><td>Enter</td></tr>
+        </table>
+        <p class="note" id="keys-note">Xbox / DualShock / generic pads work after you press a button on them.</p>
+        <p class="legal">Use ROMs you legally own. Drive / folder files stay in this tab. No commercial games or BIOS bytes are bundled.</p>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <span class="foot-systems">Burt Labs GameRoom · NES · SNES · GB · GBC · GBA · N64</span>
+    <a class="foot-host" href="index.html">Back to the room</a>
+  </footer>
+
+  <dialog id="drive-setup">
+    <form method="dialog" class="drive-form">
+      <h2>Google Drive setup</h2>
+      <p>One-time Cloud project. Credentials stay in this browser. Authorized JavaScript origins must include:</p>
+      <ul>
+        <li><code>https://gameroom.burtlabs.org</code></li>
+        <li><code>http://localhost:8765</code></li>
+      </ul>
+      <ol>
+        <li>Create a Google Cloud project and enable <strong>Google Drive API</strong> + <strong>Google Picker API</strong>.</li>
+        <li>OAuth consent screen: External, add yourself as a test user.</li>
+        <li>Create an OAuth <strong>Web application</strong> client ID with those origins (required).</li>
+        <li>API key and project number (App ID) help the picker download binary ROMs and zips.</li>
+      </ol>
+      <label>OAuth client ID
+        <input id="drive-client-id" type="text" autocomplete="off" placeholder="….apps.googleusercontent.com" />
+      </label>
+      <label>API key
+        <input id="drive-api-key" type="text" autocomplete="off" />
+      </label>
+      <label>Project number (App ID)
+        <input id="drive-app-id" type="text" autocomplete="off" inputmode="numeric" />
+      </label>
+      <div class="btn-row">
+        <button type="button" id="drive-save" class="btn primary">Save and open Drive</button>
+        <button type="button" id="drive-cancel" class="btn">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="bookshelf-dlg">
+    <div class="drive-form">
+      <h2>Bookshelf folder</h2>
+      <p>Attach a local folder of ROMs you own. The folder handle is remembered in this browser (Chromium). This page only lists games for the current console.</p>
+      <p class="note" id="bookshelf-status">No folder attached.</p>
+      <div class="btn-row">
+        <button type="button" id="bookshelf-pick" class="btn primary">Choose folder</button>
+        <button type="button" id="bookshelf-refresh" class="btn">Rescan</button>
+        <button type="button" id="bookshelf-clear" class="btn">Forget folder</button>
+        <button type="button" id="bookshelf-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="bios-dlg">
+    <div class="drive-form">
+      <h2>BIOS / system files</h2>
+      <p>Optional for GBA / GB / GBC. Point at a folder of BIOS files you legally own (for example <code>gba_bios.bin</code>). Nothing is uploaded — files stay on your machine and are read only when a matching core starts.</p>
+      <p class="note" id="bios-status">No BIOS folder attached.</p>
+      <ul id="bios-list" class="zip-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="bios-pick" class="btn primary">Choose BIOS folder</button>
+        <button type="button" id="bios-clear" class="btn">Forget folder</button>
+        <button type="button" id="bios-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="zip-pick">
+    <div class="drive-form">
+      <h2>ROMs in this zip</h2>
+      <p>Pick the game to load. Nested zips are unpacked too.</p>
+      <ul id="zip-list" class="zip-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="zip-cancel" class="btn">Cancel</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="state-dlg">
+    <div class="drive-form">
+      <h2>Save states</h2>
+      <p>Stored in this browser only. Slot 0 is the quick / auto save.</p>
+      <ul id="state-list" class="state-list"></ul>
+      <div class="btn-row">
+        <button type="button" id="state-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="help-overlay" class="help-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="help-card">
+      <h2 id="help-title">Hotkeys</h2>
+      <table class="keys">
+        <tr><td>P</td><td>Pause</td></tr>
+        <tr><td>R</td><td>Reset</td></tr>
+        <tr><td>Hold Backspace</td><td>Rewind (NES)</td></tr>
+        <tr><td>Hold Tab</td><td>Turbo</td></tr>
+        <tr><td>F5 / F7</td><td>Quick save / load</td></tr>
+        <tr><td>F8</td><td>Screenshot</td></tr>
+        <tr><td>?</td><td>This sheet</td></tr>
+      </table>
+      <p class="note">A = X / J · B = Z / K · SNES X/Y = V/C · L/R = Q/E · N64 Z = Space</p>
+      <button type="button" id="help-close" class="btn primary">Got it</button>
+    </div>
+  </div>
+
+  <dialog id="netplay-dlg">
+    <div class="drive-form">
+      <h2>Netplay</h2>
+      <p id="netplay-help">NES uses a room code over WebRTC. Both of you load the same ROM — the file is never sent. Other systems use EmulatorJS netplay from the in-core settings menu.</p>
+      <p id="netplay-status" class="note">Idle</p>
+      <label>Room code
+        <input id="netplay-code" type="text" maxlength="8" autocomplete="off" placeholder="ABC123" />
+      </label>
+      <div class="btn-row">
+        <button type="button" id="netplay-host" class="btn primary">Create room</button>
+        <button type="button" id="netplay-join" class="btn">Join</button>
+        <button type="button" id="netplay-leave" class="btn">Leave</button>
+        <button type="button" id="netplay-close" class="btn">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/vendor/jszip.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="js/demo-rom.js"></script>
+  <script src="js/bin.js"></script>
+  <script src="js/cpu.js"></script>
+  <script src="js/ppu.js"></script>
+  <script src="js/apu.js"></script>
+  <script src="js/mappers.js"></script>
+  <script src="js/nes.js"></script>
+  <script src="js/rom.js"></script>
+  <script src="js/systems.js"></script>
+  <script src="js/drive-config.js"></script>
+  <script src="js/drive.js"></script>
+  <script src="js/ejs.js"></script>
+  <script src="js/idb.js"></script>
+  <script src="js/library.js"></script>
+  <script src="js/folders.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/rewind.js"></script>
+  <script src="js/touch.js"></script>
+  <script src="js/netplay.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

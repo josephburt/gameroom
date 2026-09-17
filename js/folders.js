@@ -12,8 +12,7 @@
     gb: 1, gbc: 1, sgb: 1, dmg: 1,
     sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1,
     gba: 1, agb: 1, mb: 1,
-    md: 1, gen: 1, smd: 1,
-    cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1,
+    z64: 1, n64: 1, v64: 1,
     zip: 1
   };
   /* Lowercase basename → kind. Multiple PS1 names share kind; preference is in biosUrlFor. */

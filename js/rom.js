@@ -8,14 +8,11 @@
     gb: 1, gbc: 1, sgb: 1, dmg: 1,
     sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1,
     gba: 1, agb: 1, mb: 1,
-    md: 1, gen: 1, smd: 1, bin: 1,
-    cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1
+    z64: 1, n64: 1, v64: 1
   };
   const SNES_EXT = { sfc: 1, smc: 1, fig: 1, swc: 1, gd3: 1, gd7: 1, dx2: 1, bsx: 1 };
   const GBA_EXT = { gba: 1, agb: 1, mb: 1 };
-  const GEN_EXT = { md: 1, gen: 1, smd: 1 };
-  /* Clear PS1 containers / dumps. .bin alone is ambiguous with Genesis — only via prefer. */
-  const PS1_EXT = { cue: 1, pbp: 1, ccd: 1, m3u: 1, toc: 1, cbn: 1, img: 1, mdf: 1, iso: 1 };
+  const N64_EXT = { z64: 1, n64: 1, v64: 1 };
 
   function extOf(name) {
     const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
@@ -97,21 +94,14 @@
     return s;
   }
 
-  /* Genesis / Mega Drive: "SEGA" at 0x100 (binary) or SMD interleaved header. */
-  function isGenesis(bytes) {
-    if (!bytes || bytes.length < 0x200) return false;
-    if (asciiAt(bytes, 0x100, 4) === "SEGA") return true;
-    if (asciiAt(bytes, 0x100, 15).indexOf("SEGA") !== -1) return true;
-    /* Some dumps put TMSS string nearby */
-    if (bytes.length >= 0x110 && asciiAt(bytes, 0x100, 16).indexOf("MEGA DRIVE") !== -1) return true;
-    if (bytes.length >= 0x110 && asciiAt(bytes, 0x100, 16).indexOf("GENESIS") !== -1) return true;
+  /* N64: .z64 big-endian 80 37 12 40, .n64 little-endian, .v64 byteswapped. */
+  function isN64(bytes) {
+    if (!bytes || bytes.length < 0x40) return false;
+    const a = bytes[0], b = bytes[1], c = bytes[2], d = bytes[3];
+    if (a === 0x80 && b === 0x37 && c === 0x12 && d === 0x40) return true;
+    if (a === 0x40 && b === 0x12 && c === 0x37 && d === 0x80) return true;
+    if (a === 0x37 && b === 0x80 && c === 0x40 && d === 0x12) return true;
     return false;
-  }
-
-  /* Sony PBP (PS1/PSP container) magic at offset 0. */
-  function isPbp(bytes) {
-    return bytes && bytes.length >= 4 &&
-      bytes[0] === 0x00 && bytes[1] === 0x50 && bytes[2] === 0x42 && bytes[3] === 0x50;
   }
 
   function skipJunk(bytes) {
@@ -136,18 +126,14 @@
     if (isGba(bytes)) return "gba";
     if (isGb(bytes)) return bytes[0x143] === 0xc0 || bytes[0x143] === 0x80 ? "gbc" : "gb";
     if (isSnes(bytes)) return "snes";
-    if (isPbp(bytes)) return "ps1";
-    if (isGenesis(bytes)) return "genesis";
+    if (isN64(bytes)) return "n64";
     const ext = extOf(name);
     if (ext === "nes" || ext === "unf" || ext === "unif" || ext === "fds") return "nes";
     if (ext === "gbc") return "gbc";
     if (ext === "gb" || ext === "sgb" || ext === "dmg") return "gb";
     if (GBA_EXT[ext]) return "gba";
     if (SNES_EXT[ext]) return "snes";
-    if (GEN_EXT[ext]) return "genesis";
-    if (PS1_EXT[ext]) return "ps1";
-    /* .bin is ambiguous (Genesis vs PS1 track). Only claim PS1 when preferred. */
-    if (ext === "bin" && prefer === "ps1") return "ps1";
+    if (N64_EXT[ext]) return "n64";
     return null;
   }
 
@@ -174,44 +160,6 @@
     return files;
   }
 
-  function zipIsPs1DiscSet(files) {
-    let cues = 0;
-    let tracks = 0;
-    let foreign = 0;
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      const e = extOf(f.name);
-      if (e === "cue") {
-        cues++;
-        continue;
-      }
-      if (e === "bin" || e === "img" || e === "iso" || e === "mdf" || e === "toc" || e === "ccd" || e === "sub") {
-        tracks++;
-        continue;
-      }
-      if (e === "pbp") {
-        foreign++;
-        continue;
-      }
-      const kind = detect(f.bytes, f.name, "");
-      if (kind) foreign++;
-    }
-    return cues >= 1 && tracks >= 1 && foreign === 0;
-  }
-
-  /* Drop loose PS1 track dumps when a .cue is also listed (same zip / batch). */
-  function collapsePs1Tracks(roms) {
-    const hasCue = roms.some(function (r) {
-      return r.kind === "ps1" && extOf(r.name) === "cue";
-    });
-    if (!hasCue) return roms;
-    return roms.filter(function (r) {
-      if (r.kind !== "ps1") return true;
-      const e = extOf(r.name);
-      return e !== "bin" && e !== "img" && e !== "iso" && e !== "mdf";
-    });
-  }
-
   async function listRoms(bytes, name, opts) {
     opts = opts || {};
     const prefer = opts.prefer || "";
@@ -222,15 +170,6 @@
       if (isZip(file.bytes) || extOf(file.name) === "zip") {
         try {
           const inner = await unzipEntries(file.bytes);
-          if (zipIsPs1DiscSet(inner)) {
-            out.push({
-              name: file.name || "game.zip",
-              path: file.path || file.name || "game.zip",
-              bytes: file.bytes,
-              kind: "ps1"
-            });
-            return;
-          }
           for (let i = 0; i < inner.length; i++) await consider(inner[i]);
         } catch (e) {}
         return;
@@ -241,21 +180,23 @@
 
     if (isZip(bytes) || extOf(name) === "zip") {
       const files = await unzipEntries(bytes);
-      if (zipIsPs1DiscSet(files)) {
-        return [{ name: name || "game.zip", path: name || "game.zip", bytes: bytes, kind: "ps1" }];
-      }
       for (let i = 0; i < files.length; i++) await consider(files[i]);
     } else {
       await consider({ name: name || "ROM", bytes: bytes });
     }
-    return collapsePs1Tracks(out);
+    return out;
   }
 
   function romId(bytes) {
     let h = 2166136261;
-    const step = Math.max(1, (bytes.length / 4096) | 0);
-    for (let i = 0; i < bytes.length; i += step) h = Math.imul(h ^ bytes[i], 16777619);
-    h ^= bytes.length;
+    const n = bytes.length;
+    const head = Math.min(n, 65536);
+    for (let i = 0; i < head; i++) h = Math.imul(h ^ bytes[i], 16777619);
+    if (n > 65536) {
+      const tail = Math.max(head, n - 1024);
+      for (let i = tail; i < n; i++) h = Math.imul(h ^ bytes[i], 16777619);
+    }
+    h ^= n;
     return (h >>> 0) || 1;
   }
 
@@ -263,8 +204,7 @@
     if (kind === "nes") return "NES";
     if (kind === "snes") return "Super NES";
     if (kind === "gba") return "Game Boy Advance";
-    if (kind === "genesis") return "Sega Genesis";
-    if (kind === "ps1") return "PlayStation";
+    if (kind === "n64") return "Nintendo 64";
     if (kind === "gb" || kind === "gbc") return gbLabel(bytes);
     return kind || "ROM";
   }
@@ -300,8 +240,8 @@
       const t = asciiTitle(bytes, 0xa0, 12);
       if (t.length >= 2) return t;
     }
-    if (kind === "genesis" || isGenesis(bytes)) {
-      const t = asciiTitle(bytes, 0x150, 48);
+    if (kind === "n64" || isN64(bytes)) {
+      const t = asciiTitle(bytes, 0x20, 20);
       if (t.length >= 3) return t;
     }
     return String(fileName || "ROM")
@@ -319,16 +259,13 @@
     isGb: isGb,
     isSnes: isSnes,
     isGba: isGba,
-    isGenesis: isGenesis,
-    isPbp: isPbp,
+    isN64: isN64,
     gbLabel: gbLabel,
     systemLabel: systemLabel,
     prettyName: prettyName,
     detect: detect,
     listRoms: listRoms,
     romId: romId,
-    skipJunk: skipJunk,
-    zipIsPs1DiscSet: zipIsPs1DiscSet,
-    collapsePs1Tracks: collapsePs1Tracks
+    skipJunk: skipJunk
   };
 })(typeof window !== "undefined" ? window : globalThis);

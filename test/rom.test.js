@@ -6,6 +6,7 @@ const { loadScript, b64ToBytes } = require("./load-browser-scripts");
 
 loadScript("js/rom.js");
 loadScript("js/demo-rom.js");
+loadScript("js/systems.js");
 
 describe("GrokRom.detect", () => {
   it("detects the built-in NES demo by header", () => {
@@ -14,30 +15,25 @@ describe("GrokRom.detect", () => {
     assert.equal(GrokRom.isNes(bytes), true);
   });
 
-  it("detects PBP magic as PlayStation", () => {
-    const bytes = new Uint8Array([0x00, 0x50, 0x42, 0x50, 0, 0, 0, 0]);
-    assert.equal(GrokRom.isPbp(bytes), true);
-    assert.equal(GrokRom.detect(bytes, "game.bin"), "ps1");
+  it("detects N64 z64 magic", () => {
+    const bytes = new Uint8Array(0x40);
+    bytes[0] = 0x80; bytes[1] = 0x37; bytes[2] = 0x12; bytes[3] = 0x40;
+    assert.equal(GrokRom.isN64(bytes), true);
+    assert.equal(GrokRom.detect(bytes, "game.bin"), "n64");
   });
 
-  it("detects .pbp / .cue by extension", () => {
+  it("detects .z64 / .n64 / .v64 by extension", () => {
     const empty = new Uint8Array(16);
-    assert.equal(GrokRom.detect(empty, "Crash.pbp"), "ps1");
-    assert.equal(GrokRom.detect(empty, "Crash.cue"), "ps1");
+    assert.equal(GrokRom.detect(empty, "Mario64.z64"), "n64");
+    assert.equal(GrokRom.detect(empty, "Mario64.n64"), "n64");
+    assert.equal(GrokRom.detect(empty, "Mario64.v64"), "n64");
   });
 
-  it("treats bare .bin as PS1 only when preferred", () => {
-    const empty = new Uint8Array(16);
-    assert.equal(GrokRom.detect(empty, "track01.bin"), null);
-    assert.equal(GrokRom.detect(empty, "track01.bin", "ps1"), "ps1");
-  });
-
-  it("detects Genesis by SEGA header, not as PS1", () => {
+  it("does not treat a Genesis header as a supported system", () => {
     const bytes = new Uint8Array(0x200);
     const label = "SEGA MEGA DRIVE ";
     for (let i = 0; i < label.length; i++) bytes[0x100 + i] = label.charCodeAt(i);
-    assert.equal(GrokRom.detect(bytes, "sonic.bin"), "genesis");
-    assert.equal(GrokRom.detect(bytes, "sonic.bin", "ps1"), "genesis");
+    assert.equal(GrokRom.detect(bytes, "sonic.bin"), null);
   });
 });
 
@@ -58,38 +54,16 @@ describe("GrokRom.romId", () => {
 });
 
 describe("GrokRom.systemLabel", () => {
-  it("labels PlayStation", () => {
-    assert.equal(GrokRom.systemLabel("ps1"), "PlayStation");
+  it("labels Nintendo 64", () => {
+    assert.equal(GrokRom.systemLabel("n64"), "Nintendo 64");
   });
 });
 
-describe("GrokRom PS1 disc-set helpers", () => {
-  it("recognizes a cue+bin file list as a PS1 disc set", () => {
-    const files = [
-      { name: "game.cue", bytes: new Uint8Array(8) },
-      { name: "game.bin", bytes: new Uint8Array(8) }
-    ];
-    assert.equal(GrokRom.zipIsPs1DiscSet(files), true);
-  });
-
-  it("rejects a disc set when a foreign ROM is mixed in", () => {
-    const files = [
-      { name: "game.cue", bytes: new Uint8Array(8) },
-      { name: "game.bin", bytes: new Uint8Array(8) },
-      { name: "DEMO.nes", bytes: b64ToBytes(DEMO_ROM_B64) }
-    ];
-    assert.equal(GrokRom.zipIsPs1DiscSet(files), false);
-  });
-
-  it("collapses loose track dumps when a .cue is present", () => {
-    const roms = [
-      { name: "game.cue", kind: "ps1", bytes: new Uint8Array(4) },
-      { name: "game.bin", kind: "ps1", bytes: new Uint8Array(4) },
-      { name: "other.nes", kind: "nes", bytes: new Uint8Array(4) }
-    ];
-    const out = GrokRom.collapsePs1Tracks(roms);
-    assert.equal(out.length, 2);
-    assert.equal(out[0].name, "game.cue");
-    assert.equal(out[1].name, "other.nes");
+describe("GrokSystems catalog", () => {
+  it("lists the six live systems", () => {
+    assert.deepEqual(GrokSystems.order, ["nes", "snes", "n64", "gb", "gbc", "gba"]);
+    assert.equal(GrokSystems.isEjs("nes"), false);
+    assert.equal(GrokSystems.isEjs("n64"), true);
+    assert.equal(GrokSystems.isEjs("snes"), true);
   });
 });

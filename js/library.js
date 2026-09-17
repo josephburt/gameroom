@@ -3,6 +3,7 @@
   "use strict";
 
   const MAX = 12;
+  const MAX_BYTES = 12 * 1024 * 1024;
   const SKIP = { "DEMO ROM": 1, "demo.nes": 1 };
 
   function skipName(name) {
@@ -12,12 +13,14 @@
 
   async function remember(rec) {
     if (!rec || !rec.id || !rec.bytes || skipName(rec.name)) return;
+    const tooLarge = rec.bytes.length > MAX_BYTES;
     const row = {
       id: rec.id,
       name: rec.name,
       title: rec.title || rec.name,
       kind: rec.kind,
-      bytes: rec.bytes,
+      bytes: tooLarge ? null : rec.bytes,
+      tooLarge: tooLarge,
       shot: rec.shot || "",
       size: rec.bytes.length,
       ts: Date.now()

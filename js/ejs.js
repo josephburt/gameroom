@@ -1,4 +1,4 @@
-/* Game Boy / GBC / SNES / GBA / Genesis via EmulatorJS. */
+/* Game Boy / GBC / SNES / GBA / N64 via EmulatorJS. */
 (function (g) {
   "use strict";
 
@@ -20,15 +20,9 @@
       if (ext === "gba" || ext === "agb" || ext === "mb") return name;
       return (name || "game") + ".gba";
     }
-    if (core === "segaMD") {
-      if (ext === "md" || ext === "gen" || ext === "smd" || ext === "bin") return name;
-      return (name || "game") + ".md";
-    }
-    if (core === "psx") {
-      if (ext === "pbp" || ext === "cue" || ext === "bin" || ext === "iso" ||
-          ext === "img" || ext === "ccd" || ext === "m3u" || ext === "toc" ||
-          ext === "cbn" || ext === "mdf" || ext === "zip") return name;
-      return (name || "game") + ".pbp";
+    if (core === "n64") {
+      if (ext === "z64" || ext === "n64" || ext === "v64") return name;
+      return (name || "game") + ".z64";
     }
     if (ext === "gb" || ext === "gbc" || ext === "dmg" || ext === "sgb") return name;
     return (name || "game") + ".gb";
@@ -37,8 +31,7 @@
   function controlSchemeFor(core) {
     if (core === "snes") return "snes";
     if (core === "gba") return "gba";
-    if (core === "segaMD") return "segaMD";
-    if (core === "psx") return "psx";
+    if (core === "n64") return "n64";
     return "gb";
   }
 
@@ -80,7 +73,11 @@
     g.EJS_volume = opts.muted ? 0 : (opts.volume == null ? 0.7 : opts.volume);
     g.EJS_askBeforeExit = false;
     g.EJS_browserMode = "desktop";
-    g.EJS_defaultControls = defaultControls();
+    if (core === "n64") {
+      try { delete g.EJS_defaultControls; } catch (e) { g.EJS_defaultControls = undefined; }
+    } else {
+      g.EJS_defaultControls = defaultControls();
+    }
     g.EJS_netplayServer = "https://netplay.emulatorjs.org/";
     g.EJS_netplayICEServers = ICE;
     g.EJS_defaultOptions = {

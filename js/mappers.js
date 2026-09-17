@@ -298,8 +298,7 @@
       case 4: return new Mapper4(nes, cart);
       case 7: return new Mapper7(nes, cart);
       default:
-        console.warn("Unsupported mapper", cart.mapperId, "— using NROM fallback");
-        return new Mapper0(nes, cart);
+        throw new Error("This NES ROM uses mapper " + cart.mapperId + ", which GameRoom does not emulate yet (supported: 0, 1, 2, 3, 4, 7).");
     }
   }
 

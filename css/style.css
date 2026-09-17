@@ -46,8 +46,7 @@
   --sys-gbc: #a78bfa;
   --sys-snes: #818cf8;
   --sys-gba: #6b8afd;
-  --sys-genesis: #1aa3ff;
-  --sys-ps1: #c0c0c0;
+  --sys-n64: #c9a227;
 }
 
 body[data-system="gb"] {
@@ -66,13 +65,9 @@ body[data-system="gba"] {
   --accent: #6b8afd;
   --accent2: #93c5fd;
 }
-body[data-system="genesis"] {
-  --accent: #1aa3ff;
-  --accent2: #67e8f9;
-}
-body[data-system="ps1"] {
-  --accent: #a8a8a8;
-  --accent2: #e5e5e5;
+body[data-system="n64"] {
+  --accent: #c9a227;
+  --accent2: #ffe082;
 }
 
 * { box-sizing: border-box; }
@@ -296,15 +291,20 @@ body.view-home {
 }
 .sys-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin: 0;
 }
 .sys-grid.shelf-grid {
   margin: 0;
 }
-.sys-grid.shelf-grid-soon {
-  grid-template-columns: repeat(4, 1fr);
+.sys-grid.shelf-grid-live,
+.sys-grid.shelf-grid-hand {
+  grid-template-columns: repeat(3, 1fr);
+}
+a.sys-card {
+  text-decoration: none;
+  color: inherit;
 }
 .sys-card {
   appearance: none;
@@ -390,8 +390,7 @@ body.view-home {
 .sys-card[data-sys="gbc"] { --card-accent: var(--sys-gbc); }
 .sys-card[data-sys="snes"] { --card-accent: var(--sys-snes); }
 .sys-card[data-sys="gba"] { --card-accent: var(--sys-gba); }
-.sys-card[data-sys="genesis"] { --card-accent: var(--sys-genesis); }
-.sys-card[data-sys="ps1"] { --card-accent: var(--sys-ps1); }
+.sys-card[data-sys="n64"] { --card-accent: var(--sys-n64); }
 .sys-card.is-soon { --card-accent: #64748b; }
 
 .home-actions {
@@ -942,6 +941,7 @@ body[data-system="gbc"] .bezel {
   cursor: pointer;
   padding: 0;
   font: inherit;
+  text-decoration: none;
 }
 .recent:hover, .recent:focus-within {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
@@ -1107,10 +1107,11 @@ body[data-system="snes"] .face-x { background: #3b6ea5; }
 body[data-system="snes"] .face-y { background: #3d8b4a; }
 body[data-system="snes"] .tbtn.shoulder { background: rgba(255, 255, 255, 0.22); }
 body[data-system="gba"] .tbtn.shoulder { background: rgba(255, 255, 255, 0.22); }
-body[data-system="genesis"] .face-a { background: #c0392b; }
-body[data-system="genesis"] .face-b { background: #d4a017; }
-body[data-system="genesis"] .face-x { background: #3b6ea5; }
-body[data-system="genesis"] .face-y { background: #3d8b4a; }
+body[data-system="n64"] .face-a { background: #3d5afe; }
+body[data-system="n64"] .face-b { background: #2e7d32; }
+body[data-system="n64"] .face-x { background: #fbc02d; }
+body[data-system="n64"] .face-y { background: #fbc02d; }
+body[data-system="n64"] .tbtn.shoulder { background: rgba(255, 255, 255, 0.22); }
 
 @media (prefers-reduced-motion: reduce) {
   .logo-mark { animation: none; opacity: 1; }
@@ -1736,8 +1737,10 @@ body[data-system="genesis"] .face-y { background: #3d8b4a; }
   height: 34px;
   border-radius: 8px;
 }
-.console-genesis {
-  background: linear-gradient(90deg, #111 0 18%, var(--sys-genesis) 18% 82%, #111 82%);
+.console-n64 {
+  border-radius: 18px 18px 8px 8px;
+  background:
+    linear-gradient(90deg, #1a1a1a 0 10%, var(--sys-n64) 10% 90%, #1a1a1a 90%);
 }
 .console-soon {
   opacity: 0.45;
@@ -2386,7 +2389,28 @@ body[data-system="snes"] .deck-head { --card-accent: var(--sys-snes); }
 body[data-system="gb"] .deck-head { --card-accent: var(--sys-gb); }
 body[data-system="gbc"] .deck-head { --card-accent: var(--sys-gbc); }
 body[data-system="gba"] .deck-head { --card-accent: var(--sys-gba); }
-body[data-system="genesis"] .deck-head { --card-accent: var(--sys-genesis); }
+body[data-system="n64"] .deck-head { --card-accent: var(--sys-n64); }
+
+.library-panel {
+  max-width: 1280px;
+  margin: 0 auto 18px;
+  padding: 16px 18px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+}
+.library-panel .btn-row { margin-bottom: 8px; }
+.library-panel .recents-wrap { margin-top: 16px; }
+body.page-play #play {
+  display: block;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 20px 44px;
+  padding-left: max(20px, var(--safe-l));
+  padding-right: max(20px, var(--safe-r));
+}
+a.logo-btn { display: grid; place-items: center; text-decoration: none; }
+a.deck-up { text-decoration: none; }
 
 /* Obsolete mobile bottom-sheet toggle — panel now stacks inline. */
 .sheet-toggle { display: none !important; }
