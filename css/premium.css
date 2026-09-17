@@ -448,17 +448,17 @@ a.sys-card { text-decoration: none; color: inherit; }
 .console-art {
   display: grid;
   place-items: center;
-  height: 64px;
+  height: 72px;
   margin: 0 0 12px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 50%),
-    rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(240, 238, 232, 0.08);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 55%),
+    rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(240, 238, 232, 0.1);
   border-radius: 2px;
   box-shadow: none;
   filter: none;
-  color: color-mix(in srgb, var(--ink) 72%, var(--muted));
+  color: color-mix(in srgb, var(--ink) 82%, var(--muted));
   transition: color 0.2s ease, border-color 0.2s ease;
   position: relative;
 }
@@ -484,7 +484,7 @@ a.sys-card { text-decoration: none; color: inherit; }
 }
 .sys-card:hover .console-art {
   color: var(--card-accent, var(--accent));
-  border-color: color-mix(in srgb, var(--card-accent, var(--accent)) 35%, transparent);
+  border-color: color-mix(in srgb, var(--card-accent, var(--accent)) 40%, transparent);
 }
 .console-nes,
 .console-snes,
@@ -493,23 +493,31 @@ a.sys-card { text-decoration: none; color: inherit; }
 .console-gbc,
 .console-gba {
   width: 100%;
-  height: 64px;
+  height: 72px;
   margin: 0;
   border-radius: 2px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 50%),
-    rgba(0, 0, 0, 0.35);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 55%),
+    rgba(0, 0, 0, 0.38);
 }
 .console-sil {
-  width: 100%;
-  height: 48px;
-  transition: transform 0.2s ease;
+  width: 92%;
+  height: 56px;
+  display: block;
+  margin: 0 auto;
+  transition: opacity 0.2s ease;
 }
-.console-art--hand {
-  height: 72px;
+.console-sil.sys-logo-n64 {
+  width: auto;
+  height: 58px;
+  max-width: 56%;
+  margin-inline: auto;
+  /* Solid faces so the isometric N reads as a button, not a wire cage */
+  fill: color-mix(in srgb, var(--panel) 70%, #000);
 }
+.console-art--hand { height: 72px; }
 .console-art--hand .console-sil {
-  width: 42%;
+  width: 92%;
   height: 56px;
 }
 .room .sys-card:hover .console-sil {
