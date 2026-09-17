@@ -62,6 +62,7 @@
     const sub = $("room-tv-sub");
     if (!screen || !window.GrokLibrary) return;
     GrokLibrary.list().then(function (games) {
+      if (screen.hasAttribute("data-hover")) return;
       const last = games.filter(function (g) { return GrokSystems.byId[g.kind]; })[0];
       if (!last) return;
       screen.setAttribute("data-signal", "standby");
@@ -72,6 +73,36 @@
         screen.style.backgroundPosition = "center";
       }
     }).catch(function () {});
+  }
+
+  function wireShelfTv() {
+    const screen = $("room-tv-screen");
+    const sub = $("room-tv-sub");
+    if (!screen) return;
+    const cards = document.querySelectorAll(".room .sys-card[data-sys]");
+    function tint(card) {
+      const id = card.getAttribute("data-sys");
+      const spec = window.GrokSystems && GrokSystems.byId[id];
+      const accent = getComputedStyle(card).getPropertyValue("--card-accent").trim() ||
+        (spec && spec.color) || "#5dffc0";
+      screen.style.setProperty("--tv-accent", accent);
+      screen.setAttribute("data-hover", id);
+      if (sub && spec) sub.textContent = spec.label + " · click to load";
+    }
+    function clear() {
+      screen.removeAttribute("data-hover");
+      screen.style.removeProperty("--tv-accent");
+      if (sub && screen.getAttribute("data-signal") !== "standby") {
+        sub.textContent = "AV-1 · pick a console";
+      }
+      paintTv();
+    }
+    cards.forEach(function (card) {
+      card.addEventListener("mouseenter", function () { tint(card); });
+      card.addEventListener("mouseleave", clear);
+      card.addEventListener("focus", function () { tint(card); });
+      card.addEventListener("blur", clear);
+    });
   }
 
   function initDesktopBanner() {
@@ -123,4 +154,5 @@
   initDesktopBanner();
   renderRecents().catch(function () {});
   paintTv();
+  wireShelfTv();
 })();

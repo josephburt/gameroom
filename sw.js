@@ -1,5 +1,5 @@
 /* Cache the static shell. ROM bytes and Drive traffic are never stored here. */
-const CACHE = "gameroom-v25";
+const CACHE = "gameroom-v27";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -33,10 +33,18 @@ const PRECACHE = [
   "/icons/apple-touch-icon.png"
 ];
 
+function networkFirst(url) {
+  return fetch(url, { cache: "reload" });
+}
+
 self.addEventListener("install", function (event) {
   event.waitUntil(
     caches.open(CACHE).then(function (cache) {
-      return cache.addAll(PRECACHE).catch(function () {});
+      return Promise.all(PRECACHE.map(function (path) {
+        return networkFirst(path).then(function (res) {
+          if (res && res.ok) return cache.put(path, res);
+        }).catch(function () {});
+      }));
     }).then(function () { return self.skipWaiting(); })
   );
 });
@@ -60,7 +68,7 @@ self.addEventListener("fetch", function (event) {
 
   if (req.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
     event.respondWith(
-      fetch(req).then(function (res) {
+      fetch(req, { cache: "reload" }).then(function (res) {
         const copy = res.clone();
         caches.open(CACHE).then(function (c) { c.put(req, copy); });
         return res;
